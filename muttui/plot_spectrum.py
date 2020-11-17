@@ -46,7 +46,10 @@ def plotSpectrumFromDict(spectrum, outFile):
     plt.xlabel("Mutation")
     plt.ylabel("Number of mutations")
     plt.tick_params(axis = "x", which = "both", bottom = False, labelbottom = False)
-    plt.savefig(outFile.name)
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
