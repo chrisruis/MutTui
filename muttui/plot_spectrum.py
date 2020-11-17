@@ -62,6 +62,11 @@ if __name__ == "__main__":
                         dest = "outFile",
                         required = True,
                         help = "Output PDF file to which spectrum will be written")
+    parser.add_argument("--rna",
+                        dest = "rna",
+                        help = "Specify if using an RNA pathogen, will plot an RNA mutational spectrum",
+                        action = "store_true",
+                        default = False)
     
     args = parser.parse_args()
 
