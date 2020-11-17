@@ -9,6 +9,7 @@ from Bio import AlignIO, Phylo
 from collections import OrderedDict
 from branch_labelling import *
 from reconstruct_spectrum import *
+from plot_spectrum import *
 
 from __init__ import __version__
 
@@ -249,6 +250,12 @@ def main():
         for eachMutation in spectraDict[eachLabel]:
             outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(spectraDict[eachLabel][eachMutation]) + "\n")
         outFile.close()
+
+        #Plot the spectrum
+        outSpectrum = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".pdf", "w")
+        spectrumFormat = convertSpectrumFormat(spectraDict[eachLabel])
+        plotSpectrumFromDict(spectrumFormat, outSpectrum)
+        outSpectrum.close()
 
     #Close output files
     outMutationsNotUsed.close()
