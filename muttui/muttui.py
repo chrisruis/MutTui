@@ -195,11 +195,12 @@ def main():
 
             branchCategory = getBranchCategory(labelledTree, clade)
 
-            #Check if there are mutations along the branch, the .comment is only added to the clade if there are
-            #Check if the branch has a category, will be none if the branch is a transition between categories
-            if clade.comment and (branchCategory is not None):
-                branchMutations = branchMutationDict[branchName]
+            branchMutations = branchMutationDict[branchName]
 
+            #Check if there are mutations along the branch, the .comment is only added to the clade if there are
+            #Further check if there are mutations in branchDict along the branch as all mutations might have been removed
+            #Check if the branch has a category, will be none if the branch is a transition between categories
+            if clade.comment and (branchMutations != "None") and (branchCategory is not None):
                 #Check if there are double substitutions along the branch and remove these mutations
                 if len(branchMutations) > 1:
                     positionsToRemove = []
@@ -209,11 +210,14 @@ def main():
                                 positionsToRemove.append(mutation1)
                                 positionsToRemove.append(mutation2)
                     if len(positionsToRemove) != 0:
+                        #Identify the unique set of positions, if there are 3 or more consecutive positions to be removed,
+                        #at least one of these positions will be in positionsToRemove more than once
+                        uniquePositionsToRemove = list(set(positionsToRemove))
                         #Write the positions to the mutations not analysed file
-                        for removePosition in positionsToRemove:
+                        for removePosition in uniquePositionsToRemove:
                             outMutationsNotUsed.write(branchMutations[removePosition][0] + str(branchMutations[removePosition][1]) + branchMutations[removePosition][3] + "," + branchMutations[removePosition][0] + str(branchMutations[removePosition][2]) + branchMutations[removePosition][3] + "," + branchName + ",Double_substitution\n")
                         #Remove the positions from the mutations
-                        for ele in sorted(positionsToRemove, reverse = True):
+                        for ele in sorted(uniquePositionsToRemove, reverse = True):
                             del branchMutations[ele]
                 
                 #Update the reference sequence to get the current context
