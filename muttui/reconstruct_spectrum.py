@@ -69,7 +69,7 @@ def getBranchDict(tree, positionTranslation):
         #Do not analyse the root
         if len(tree.get_path(clade)) != 0:
             #Check if there are mutations along the branch
-            if clade.comment:
+            if (clade.comment) and (clade.comment != '[&mutations=""]'):
                 branchDict[getBranchName(tree, clade)] = getMutations(clade.comment, positionTranslation)
             else:
                 branchDict[getBranchName(tree, clade)] = "None"
