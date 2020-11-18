@@ -123,7 +123,7 @@ def main():
     outMutationsNotUsed.write("Mutation_in_alignment,Mutation_in_genome,Branch,Reason_not_included\n")
 
     outAllMutations = open(args.output_dir + "all_included_mutations.csv", "w")
-    outAllMutations.write("Mutation_in_alignment,Mutation_in_genome,Branch\n")
+    outAllMutations.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch\n")
 
     print("Running treetime ancestral reconstruction to identify mutations")
 
@@ -240,11 +240,11 @@ def main():
                             #This will be true for all RNA mutations and half of DNA mutations
                             if (mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]) in spectraDict[branchCategory]:
                                 spectraDict[branchCategory][mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]] += 1
-                                outAllMutations.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + branchName + "\n")
+                                outAllMutations.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + mutationContext[0] + "[" + mutation[0] + ">" + mutation[3] + "]" + mutationContext[1] + "," + branchName + "\n")
                             #Add to the corresponding complement
                             else:
                                 spectraDict[branchCategory][complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
-                                outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + branchName + "\n")
+                                outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + complement(mutationContext[1]) + "[" + complement(mutation[0]) + ">" + complement(mutation[3]) + "]" + complement(mutationContext[0]) + "," + branchName + "\n")
     
     #Write the spectra to separate files
     for eachLabel in spectraDict:
