@@ -105,4 +105,17 @@ if __name__ == "__main__":
     
     #Calculate distances between all pairs of spectra
     distances = getDistanceMatrix(spectraList)
+
+    #Write distances
+    with open(args.output_dir + "sample_distances.txt", "w") as distances_out:
+        distances_out.write("Sample")
+        for sample in args.spectra:
+            distances_out.write("\t" + sample.name)
+        distances_out.write("\n")
+        for row in range(len(distances)):
+            distances_out.write(args.spectra[row].name)
+            for column in distances[row]:
+                distances_out.write("\t" + str(column))
+            distances_out.write("\n")
+
     plotMDS(distances, args.spectra, args.output_dir)
