@@ -1,8 +1,12 @@
 #Calculates the distance between all pairs of mutational spectra and clusters based on these distances
 #Calculates distance using either the Bhattacharyya distance or Jensen-Shannon distance
 
+import os
 import argparse
 from math import sqrt, log2
+import numpy as np
+from sklearn import manifold
+from matplotlib import pyplot as plt
 from plot_spectrum import convertSpectrumDict
 from compare_spectra import convertSpectrumProportions
 
@@ -16,6 +20,54 @@ def calculateSpectraDistance(spectrum1, spectrum2, method):
         Bhattacharyya_distance = -log2(distance)
     
     return(Bhattacharyya_distance)
+
+#Creates a matrix of zeros with number of rows and columns equal to the provided number of samples
+def getZerosMatrix(nSamples):
+    dist_mat = np.zeros((nSamples, nSamples), dtype = float)
+
+    return(dist_mat)
+
+#Calculates a distance matrix between all pairs of spectra
+def getDistanceMatrix(spectraList):
+    #Distance matrix of zeros
+    distances = getZerosMatrix(len(spectraList))
+
+    #Iterate through the pairs of spectra and calculate their distance
+    for spectrum1 in range(len(spectraList) - 1):
+        for spectrum2 in range((spectrum1 + 1), len(spectraList)):
+            distances[spectrum1, spectrum2] = calculateSpectraDistance(spectraList[spectrum1], spectraList[spectrum2], args.method)
+            distances[spectrum2, spectrum1] = distances[spectrum1, spectrum2]
+    
+    return(distances)
+
+#Plots a multidimensional scaling based on a given distance matrix
+def plotMDS(distances, file_names, output_dir):
+    #MDS of the distances
+    mds = manifold.MDS(n_components = 2, dissimilarity = "precomputed")
+    projection = mds.fit(distances)
+    coords = projection.embedding_
+
+    #Write MDS coordinates
+    with open(output_dir + "mds_coordinates.txt", "w") as points_out:
+        points_out.write("Sample\tx_coordinate\ty_coordinate\n")
+        for i, coord in zip(file_names, coords):
+            points_out.write("%s\t%s\t%s\n" % (i.name, coord[0], coord[1]))
+    
+    #Identify plot margins
+    c_min = np.min(coords) - abs(np.quantile(coords, 0.05))
+    c_max = np.max(coords) + abs(np.quantile(coords, 0.05))
+
+    #Plot MDS
+    plt.style.use("ggplot")
+    fig = plt.figure()
+    plt.scatter(coords[:, 0], coords[:, 1])
+    plt.grid(True)
+    plt.xlabel("MDS dimension 1")
+    plt.ylabel("MDS dimension 2")
+    plt.xlim((c_min, c_max))
+    plt.ylim((c_min, c_max))
+    plt.tight_layout()
+    fig.savefig(output_dir + "sample_MDS.pdf")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -35,10 +87,14 @@ if __name__ == "__main__":
                         "Options are Bhattacharyya (default) and JS (Jensen-Shannon)")
     parser.add_argument("-o",
                         "--out_prefix",
+                        dest = "output_dir",
                         required = True,
-                        help = "Output file prefix")
+                        help = "Output directory")
     
     args = parser.parse_args()
+
+    #Make sure trailing forward slash is present in output directory
+    args.output_dir = os.path.join(args.output_dir, "")
 
     #List of spectra
     spectraList = []
@@ -47,7 +103,6 @@ if __name__ == "__main__":
     for spectrum in args.spectra:
         spectraList.append(convertSpectrumProportions(convertSpectrumDict(spectrum)))
     
-    #Iterate through the pairs of spectra and calculate their distance
-    for spectrum1 in range(len(spectraList) - 1):
-        for spectrum2 in range((spectrum1 + 1), len(spectraList)):
-            print(calculateSpectraDistance(spectraList[spectrum1], spectraList[spectrum2], args.method))
+    #Calculate distances between all pairs of spectra
+    distances = getDistanceMatrix(spectraList)
+    plotMDS(distances, args.spectra, args.output_dir)
