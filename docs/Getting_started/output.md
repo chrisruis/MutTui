@@ -4,7 +4,11 @@
 
 The inferred mutational spectrum along branches labelled with label X. There will be one of these files for each branch label with the "X" part of the file name replaced with the label. Note that if your tree does not contain multiple labels (i.e. you ran MutTui without -lt and -l), you will have one output mutational spectrum called mutational_spectrum_label_A.csv.
 
-In this file, column 1 contains each contextual mutation (96 mutations with DNA, 192 with RNA) and column 2 contains the number of that contextual mutation inferred to have occured within the evolutionary history of the dataset.
+In this file, column 1 contains each contextual mutation (96 mutations with DNA, 192 with RNA). The format of these contextual mutations is:
+* upstream base [ancestral base > mutated base] downstream base
+So the mutation is from "ancestral base" to "mutated base". The "upstream base" and "downstream base" give the context of the mutation.
+
+Column 2 contains the number of the contextual mutation inferred to have occured within the evolutionary history of the dataset.
 
 ### mutational_spectrum_label_X.pdf
 
