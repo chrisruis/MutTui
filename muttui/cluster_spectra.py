@@ -1,5 +1,7 @@
 #Calculates the distance between all pairs of mutational spectra and clusters based on these distances
 #Calculates distance using either the Bhattacharyya distance or Jensen-Shannon distance
+#Can optionally take a file with information to colour the points
+#The colouring file has 2 columns - column 1 is the file paths as they will be given to the script, column 2 is the colours
 
 import os
 import argparse
@@ -9,6 +11,10 @@ from sklearn import manifold
 from matplotlib import pyplot as plt
 from plot_spectrum import convertSpectrumDict
 from compare_spectra import convertSpectrumProportions
+
+#Converts a given colouring file to a dictionary with files as keys and colours as distances
+def getColourDict(colourFile, spectra):
+    print(colourFile)
 
 #Calculates the distance between 2 given spectra
 def calculateSpectraDistance(spectrum1, spectrum2, method):
@@ -85,6 +91,15 @@ if __name__ == "__main__":
                         default = "Bhattacharyya",
                         help = "The method used to calculate distances between pairs of spectra. " + 
                         "Options are Bhattacharyya (default) and JS (Jensen-Shannon)")
+    parser.add_argument("-c",
+                        "--colours",
+                        dest = "colour_file",
+                        default = None,
+                        help = "Optional file containing information to colour points in the output clustering. " + 
+                        "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
+                        "file path of each spectrum that will be clustered. Give the path from the directory in " + 
+                        "which you will run the script as it would be provided to -s. Column 2 is the colour that the " + 
+                        "corresponding point will be.")
     parser.add_argument("-o",
                         "--out_prefix",
                         dest = "output_dir",
@@ -95,6 +110,9 @@ if __name__ == "__main__":
 
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
+
+    #Extract the colours to a dictionary if required, otherwise set the points to blue
+    getColourDict(args.colourFile, args.spectra)
 
     #List of spectra
     spectraList = []
