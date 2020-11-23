@@ -2,6 +2,7 @@
 #Used by muttui.py to plot spectra but can also be run as a standalone script on a MutTui output spectrum
 
 import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 
 #Converts an input spectrum from a csv file to a dictionary
@@ -40,9 +41,31 @@ def plotSpectrumFromDict(spectrum, outFile):
     #Colours of the bars
     colourSet = ["blue", "black", "red", "grey", "green", "pink"]
     colours = [i for i in colourSet for j in range(16)]
-    
+
+    #Labels of the mutation type rectangles
+    labels = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
+
+    #Used to plot the rectangles above the plot containing the mutation type
+    rect_lower = float(np.max(mutationCounts)) + abs(np.quantile(mutationCounts, 0.05))
+    rect_width = float(np.max(mutationCounts)) * 0.1
+
+    #The coordinates of the mutation type rectangles and text
+    mutation_types = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
+    rect_coords = [-0.5, 15.5, 31.5, 47.5, 63.5, 79.5]
+    text_coords = [4, 20, 36, 52, 68, 84]
+
+    #mutationCounts = []
+    #for i in range(96):
+    #    mutationCounts.append(6)
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
     plt.style.use("ggplot")
-    plt.bar(mutations, mutationCounts, color = colours)
+    ax.bar(mutations, mutationCounts, color = colours)
+    #ax.add_patch(plt.Rectangle((80, rect_lower), 15, rect_width, clip_on = False))
+    for i, rect in enumerate(rect_coords):
+        ax.add_patch(plt.Rectangle((rect, rect_lower), 16, rect_width, facecolor = colourSet[i]))
+        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], color = "white")
     plt.xlabel("Mutation")
     plt.ylabel("Number of mutations")
     plt.tick_params(axis = "x", which = "both", bottom = False, labelbottom = False)
