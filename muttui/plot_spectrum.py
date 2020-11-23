@@ -46,7 +46,7 @@ def plotSpectrumFromDict(spectrum, outFile):
     labels = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
 
     #Used to plot the rectangles above the plot containing the mutation type
-    rect_lower = float(np.max(mutationCounts)) + abs(np.quantile(mutationCounts, 0.05))
+    rect_lower = float(np.max(mutationCounts)) + float(np.max(mutationCounts) * 0.05) #abs(np.quantile(mutationCounts, 0.05))
     rect_width = float(np.max(mutationCounts)) * 0.1
 
     #The coordinates of the mutation type rectangles and text
@@ -54,21 +54,20 @@ def plotSpectrumFromDict(spectrum, outFile):
     rect_coords = [-0.5, 15.5, 31.5, 47.5, 63.5, 79.5]
     text_coords = [4, 20, 36, 52, 68, 84]
 
-    #mutationCounts = []
-    #for i in range(96):
-    #    mutationCounts.append(6)
-
     fig = plt.figure()
     ax = plt.subplot(111)
-    plt.style.use("ggplot")
     ax.bar(mutations, mutationCounts, color = colours)
     #ax.add_patch(plt.Rectangle((80, rect_lower), 15, rect_width, clip_on = False))
     for i, rect in enumerate(rect_coords):
         ax.add_patch(plt.Rectangle((rect, rect_lower), 16, rect_width, facecolor = colourSet[i]))
-        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], color = "white")
+        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], color = "white", fontweight = "bold")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_xticklabels([""] * len(mutations))
     plt.xlabel("Mutation")
     plt.ylabel("Number of mutations")
-    plt.tick_params(axis = "x", which = "both", bottom = False, labelbottom = False)
+    plt.margins(0)
+    #plt.tick_params(axis = "x", which = "both", bottom = False, labelbottom = False)
     if type(outFile) == str:
         plt.savefig(outFile)
     else:
