@@ -13,8 +13,19 @@ from plot_spectrum import convertSpectrumDict
 from compare_spectra import convertSpectrumProportions
 
 #Converts a given colouring file to a dictionary with files as keys and colours as distances
-def getColourDict(colourFile, spectra):
-    print(colourFile)
+def getColourDict(colourFile):
+    if colourFile is None:
+        return(None)
+    
+    else:
+        colours = open(colourFile.name).readlines()
+
+        colourDict = {}
+
+        for eachFile in colours:
+            colourDict[eachFile.strip().split("\t")[0]] = eachFile.strip().split("\t")[1]
+        
+        return(colourDict)
 
 #Calculates the distance between 2 given spectra
 def calculateSpectraDistance(spectrum1, spectrum2, method):
@@ -47,11 +58,21 @@ def getDistanceMatrix(spectraList):
     return(distances)
 
 #Plots a multidimensional scaling based on a given distance matrix
-def plotMDS(distances, file_names, output_dir):
+def plotMDS(distances, file_names, colourFile, output_dir):
     #MDS of the distances
     mds = manifold.MDS(n_components = 2, dissimilarity = "precomputed")
     projection = mds.fit(distances)
     coords = projection.embedding_
+
+    #Extract the colours of each point
+    colourDict = getColourDict(colourFile)
+    colours = []
+    if colourDict is None:
+        for eachFile in file_names:
+            colours.append("blue")
+    else:
+        for eachFile in file_names:
+            colours.append(colourDict[eachFile.name])
 
     #Write MDS coordinates
     with open(output_dir + "mds_coordinates.txt", "w") as points_out:
@@ -66,7 +87,7 @@ def plotMDS(distances, file_names, output_dir):
     #Plot MDS
     plt.style.use("ggplot")
     fig = plt.figure()
-    plt.scatter(coords[:, 0], coords[:, 1])
+    plt.scatter(coords[:, 0], coords[:, 1], color = colours)
     plt.grid(True)
     plt.xlabel("MDS dimension 1")
     plt.ylabel("MDS dimension 2")
@@ -99,7 +120,8 @@ if __name__ == "__main__":
                         "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
                         "file path of each spectrum that will be clustered. Give the path from the directory in " + 
                         "which you will run the script as it would be provided to -s. Column 2 is the colour that the " + 
-                        "corresponding point will be.")
+                        "corresponding point will be.",
+                        type = argparse.FileType("r"))
     parser.add_argument("-o",
                         "--out_prefix",
                         dest = "output_dir",
@@ -111,13 +133,10 @@ if __name__ == "__main__":
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
-    #Extract the colours to a dictionary if required, otherwise set the points to blue
-    getColourDict(args.colourFile, args.spectra)
-
     #List of spectra
     spectraList = []
 
-    #Extract the spectra into spectraDict
+    #Extract the spectra into spectraList
     for spectrum in args.spectra:
         spectraList.append(convertSpectrumProportions(convertSpectrumDict(spectrum)))
     
@@ -136,4 +155,4 @@ if __name__ == "__main__":
                 distances_out.write("\t" + str(column))
             distances_out.write("\n")
 
-    plotMDS(distances, args.spectra, args.output_dir)
+    plotMDS(distances, args.spectra, args.colour_file, args.output_dir)
