@@ -105,6 +105,15 @@ def get_options():
                         "treetime mugration output. In these rare cases, use this option to assign the root state. This option " + 
                         "can also be used to assign a root state if you'd like but its recommended to use the mugration state",
                         default = None)
+    parser.add_argument("--filter",
+                        dest = "filter",
+                        help = "Converts gaps to Ns in the sequence alignment. treetime will reconstruct gaps onto the tree. " + 
+                        "This is fine when there's not many gap but if the alignment contains many gaps, the annotated tree from " + 
+                        "treetime becomes very large and time consuming to read into python. Ns are not reconstructed by treetime. " + 
+                        "By converting gaps to Ns, it reduces the number of reconstructed mutations and greatly speeds up run time. " + 
+                        "Use this option if your alignment contains many gaps",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--version",
                         action = "version",
                         version = "%(prog)s " + __version__)
@@ -127,12 +136,20 @@ def main():
 
     print("Running treetime ancestral reconstruction to identify mutations")
 
-    #Run treetime on the input alignment and tree with any provided options
-    run_treetime(args.alignment, args.tree, args.output_dir, args.add_treetime_cmds)
+    #Check if the alignment is to be converted so gaps become Ns. If so, run the conversion
+    #and run treetime on the new alignment
+    if args.filter:
+        change_gaps_to_Ns(args.alignment, args.output_dir)
+        run_treetime(open(args.output_dir + "gaps_to_N_alignment.fasta"), args.tree, args.output_dir, args.add_treetime_cmds)
+    else:
+        #Run treetime on the input alignment and tree with any provided options
+        run_treetime(args.alignment, args.tree, args.output_dir, args.add_treetime_cmds)
 
     #Import the alignment and tree from treetime
     alignment = AlignIO.read(args.output_dir + "ancestral_sequences.fasta", "fasta")
     tree = Phylo.read(args.output_dir + "annotated_tree.nexus", "nexus")
+
+    print("Files read in")
 
     #Label branches in the tree into categories, each category will have a separate spectrum
     if args.labels:
@@ -159,6 +176,8 @@ def main():
     else:
         labelledTree, treeLabels = labelAllBranches(tree)
     
+    print("Tree labelled")
+    
     #Branch categories as keys, spectra as values
     spectraDict = {}
     #Create empty spectrum for each branch category
@@ -168,6 +187,8 @@ def main():
     else:
         for label in treeLabels:
             spectraDict[label] = getMutationDict()
+    
+    print("Spectra created")
     
     #The 4 nucleotides, used to check if mutated, upstream and downstream bases are nucleotides
     nucleotides = ["A","C","G","T"]
@@ -181,13 +202,18 @@ def main():
     #Extract mutations to dictionary with branches as keys and mutations as values
     branchMutationDict = getBranchDict(labelledTree, positionTranslation)
 
+    print("Dicts created")
+
     #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
     #and the root sequence from the ancestral reconstruction is used
     referenceSequence = getReference(args.reference, args.all_sites, alignment, positionTranslation)
     referenceLength = len(referenceSequence)
+
+    print("Reference converted")
     
     #Iterate through the branches, get the category of the branch, identify the contextual mutations, add to the corresponding spectrum
     for clade in labelledTree.find_clades():
+        print(clade)
         #Do not analyse the root
         if len(tree.get_path(clade)) != 0:
             #Identify the name of the branch

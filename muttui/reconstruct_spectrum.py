@@ -90,19 +90,28 @@ def getReference(reference, all_sites, alignment, positionTranslation):
     #starting sequence and updates based on this
     else:
         ref = AlignIO.read(reference.name, "fasta")
-        referenceSequence = ref[0].seq
+        refSeq = ref[0].seq
 
-        #Iterate through the variable positions and assign the reference to the nucleotide at the root at each position
+        #Reverse the position translation so genome positions are keys and alignment positions are values
+        #Can then iterate through the genome positions and check if they are in this
+        toChange = {j:i for i, j in positionTranslation.items()}
+
+        #Extract the root sequences from the reconstruction
         for sequence in alignment:
             if sequence.name == "NODE_0000000":
-                for eachPos in positionTranslation:
-                    #Check if the position is the first in the reference
-                    if positionTranslation[eachPos] == 1:
-                        referenceSequence = sequence.seq[0] + referenceSequence[1:]
-                    elif positionTranslation[eachPos] == len(referenceSequence):
-                        referenceSequence = referenceSequence[:-1] + sequence.seq[-1]
-                    else:
-                        referenceSequence = referenceSequence[:(positionTranslation[eachPos] - 1)] + sequence.seq[eachPos - 1] + referenceSequence[positionTranslation[eachPos]:]
+                root_seq = sequence.seq
+        
+        #Will be the original reference with the root sequence base substituted at each reconstructed position
+        referenceSequence = ""
+
+        #Iterate through the length of the reference genome. If the position is in toChange, take the dictionary value position from
+        #the root sequence which only contains positions in the translate file. Otherwise, take the position from the reference
+        for pos in range(len(refSeq)):
+            #Check if the position is variable and needs to be taken from the root
+            if (pos + 1) in toChange:
+                referenceSequence += root_seq[toChange[pos + 1] - 1]
+            else:
+                referenceSequence += refSeq[pos]
     
     return(referenceSequence)
 

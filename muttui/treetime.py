@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+from Bio import AlignIO
 
 #Runs treetime ancestral reconstruction
 def run_treetime(alignment, tree, output_dir, add_treetime_cmds):
@@ -34,3 +35,20 @@ def run_treetime_mugration(tree, labels, output_dir):
     cmd += " --attribute group --confidence --outdir " + output_dir + "/mugration_out"
 
     subprocess.run(cmd, shell = True, check = True, executable = '/bin/sh')
+
+#treetime reconstructs mutations at gap sites, which are later removed by MutTui
+#This can be a problem if there are large numbers of gap sites as the resulting annotated nexus tree
+#takes a very long time to read into python
+#Ns are not reconstructed by treetime. This function replaces gaps with Ns in the alignment
+#so they will not be reconstructed. As gaps and Ns are both treated as missing data
+#in phylogenetic methods, this will not alter any inferences but will remove large numbers
+#of gaps from the infered mutations
+def change_gaps_to_Ns(alignmentFile, output_dir):
+    alignment = AlignIO.read(alignmentFile.name, "fasta")
+
+    new_a = open(output_dir + "gaps_to_N_alignment.fasta", "w")
+
+    for seq in alignment:
+        new_a.write(">" + seq.id + "\n" + str(seq.seq).replace("-", "N") + "\n")
+    
+    new_a.close()
