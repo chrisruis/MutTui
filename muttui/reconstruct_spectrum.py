@@ -4,6 +4,7 @@ import argparse
 from Bio import AlignIO, Phylo
 from collections import OrderedDict
 import operator
+import array
 from treetime import *
 
 #Converts the positional translation to a dictionary with alignment positions as keys and genome positions as values
@@ -116,16 +117,24 @@ def getReference(reference, all_sites, alignment, positionTranslation):
     return(referenceSequence)
 
 #Updates the original reference sequence so it includes the mutations acquired up to the given clade
-def updateReference(tree, clade, branchMutationDict, referenceSequence):
+def updateReference(tree, clade, branchMutationDict, refSeq):
+    #Will be filled with the positions to be altered and the base they will be altered to
+    #If a position has changed multiple times leading to the clade of interest, this dictionary will contain
+    #the latest change as clades are iterated through from the root
+    updateDict = dict()
+
+    #Convert the reference sequence to an array
+    referenceArray = array.array("u", refSeq)
+
     #Iterate through the upstream branches leading to the node at the start of the current branch
     for upstreamClade in tree.get_path(clade)[:-1]:
         #Check if there are any mutations along the branch
         if branchMutationDict[getBranchName(tree, upstreamClade)] != "None":
             #Iterate through the previous mutations and update the reference sequence
             for eachMutation in branchMutationDict[getBranchName(tree, upstreamClade)]:
-                referenceSequence = referenceSequence[:(eachMutation[2] - 1)] + eachMutation[3] + referenceSequence[eachMutation[2]:]
+                referenceArray[eachMutation[2] - 1] = eachMutation[3]
     
-    return(referenceSequence)
+    return("".join(refSeq))
 
 #Identifies the label category of a given branch, returns None if the branch is a transition between labels
 def getBranchCategory(tree, clade):

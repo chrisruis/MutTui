@@ -5,6 +5,7 @@ import argparse
 from isvalid import *
 from treetime import run_treetime
 import subprocess
+import array
 from Bio import AlignIO, Phylo
 from collections import OrderedDict
 from branch_labelling import *
@@ -149,8 +150,6 @@ def main():
     alignment = AlignIO.read(args.output_dir + "ancestral_sequences.fasta", "fasta")
     tree = Phylo.read(args.output_dir + "annotated_tree.nexus", "nexus")
 
-    print("Files read in")
-
     #Label branches in the tree into categories, each category will have a separate spectrum
     if args.labels:
         #Extract the labels to a dictionary and add taxa without a label
@@ -176,8 +175,6 @@ def main():
     else:
         labelledTree, treeLabels = labelAllBranches(tree)
     
-    print("Tree labelled")
-    
     #Branch categories as keys, spectra as values
     spectraDict = {}
     #Create empty spectrum for each branch category
@@ -187,8 +184,6 @@ def main():
     else:
         for label in treeLabels:
             spectraDict[label] = getMutationDict()
-    
-    print("Spectra created")
     
     #The 4 nucleotides, used to check if mutated, upstream and downstream bases are nucleotides
     nucleotides = ["A","C","G","T"]
@@ -202,31 +197,28 @@ def main():
     #Extract mutations to dictionary with branches as keys and mutations as values
     branchMutationDict = getBranchDict(labelledTree, positionTranslation)
 
-    print("Dicts created")
-
     #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
     #and the root sequence from the ancestral reconstruction is used
     referenceSequence = getReference(args.reference, args.all_sites, alignment, positionTranslation)
     referenceLength = len(referenceSequence)
-
-    print("Reference converted")
     
     #Iterate through the branches, get the category of the branch, identify the contextual mutations, add to the corresponding spectrum
     for clade in labelledTree.find_clades():
-        print(clade)
-        #Do not analyse the root
-        if len(tree.get_path(clade)) != 0:
+        #Check if there are mutations along the current branch, only need to analyse branches with mutations
+        if clade.comment:
             #Identify the name of the branch
             branchName = getBranchName(tree, clade)
 
+            #The label of the current branch, this will be None if the label changes along this branch
             branchCategory = getBranchCategory(labelledTree, clade)
 
+            #Extract the mutations along the branch. This will be None if there are no mutations but treetime has still added the mutation comment
             branchMutations = branchMutationDict[branchName]
 
             #Check if there are mutations along the branch, the .comment is only added to the clade if there are
             #Further check if there are mutations in branchDict along the branch as all mutations might have been removed
             #Check if the branch has a category, will be none if the branch is a transition between categories
-            if clade.comment and (branchMutations != "None") and (branchCategory is not None):
+            if (branchMutations != "None") and (branchCategory is not None):
                 #Check if there are double substitutions along the branch and remove these mutations
                 if len(branchMutations) > 1:
                     positionsToRemove = []
