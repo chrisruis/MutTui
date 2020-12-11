@@ -117,24 +117,23 @@ def getReference(reference, all_sites, alignment, positionTranslation):
     return(referenceSequence)
 
 #Updates the original reference sequence so it includes the mutations acquired up to the given clade
+#Converts the reference to an array, iterates through the upstream branches and updates each of the positions
+#that mutated along an upstream branch to the mutated base
+#If a position has changed multiple times along the upstream branches, this keeps the most recent change as the
+#clades are iterated through from the root through to the most recent upstream branch
 def updateReference(tree, clade, branchMutationDict, refSeq):
-    #Will be filled with the positions to be altered and the base they will be altered to
-    #If a position has changed multiple times leading to the clade of interest, this dictionary will contain
-    #the latest change as clades are iterated through from the root
-    updateDict = dict()
-
     #Convert the reference sequence to an array
     referenceArray = array.array("u", refSeq)
 
     #Iterate through the upstream branches leading to the node at the start of the current branch
     for upstreamClade in tree.get_path(clade)[:-1]:
-        #Check if there are any mutations along the branch
+        #Check if there are any mutations along the current upstream branch
         if branchMutationDict[getBranchName(tree, upstreamClade)] != "None":
             #Iterate through the previous mutations and update the reference sequence
             for eachMutation in branchMutationDict[getBranchName(tree, upstreamClade)]:
                 referenceArray[eachMutation[2] - 1] = eachMutation[3]
     
-    return("".join(refSeq))
+    return("".join(referenceArray))
 
 #Identifies the label category of a given branch, returns None if the branch is a transition between labels
 def getBranchCategory(tree, clade):
