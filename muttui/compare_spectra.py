@@ -61,4 +61,6 @@ if __name__ == "__main__":
 
     outFile.close()
 
-    plotSpectrumFromDict(spectrumDifference, args.out_prefix + ".pdf")
+    plotSpectrumFromDict(spectrumDifference, args.out_prefix + "_spectrum_comparison.pdf")
+
+    plotSpectrumPointComparison(spectrum1Proportions, spectrum2Proportions, args.out_prefix + "_proportion_comparison.pdf")
