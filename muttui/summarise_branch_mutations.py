@@ -12,69 +12,88 @@ import re
 def getAllIndices(s, c):
     return([i for i, ltr in enumerate(s) if ltr == c])
 
-#Replaces the mutations in an annotated tree file with mutation proportions
-#Takes the tree string from annotated_tree.nexus from treetime
-def convertTreeMutations(tree, bM, bMT, mutationTypes):
-    #Extract the colon positions in the tree string, used to identify branches
-    bPos = getAllIndices(tree, ":")
+#Labels each branch in a tree with its total mutations and mutation proportions
+def convertTreeMutations(tree, bM, bMT):
+    #Iterate through the clades and label them with their mutation proportions
+    for clade in tree.find_clades():
+        #Do not analyse the root
+        if len(tree.get_path(clade)) != 0:
 
-    #Iterate through the branches, identify their name and replace the mutations with mutation proportions
-    for b in bPos[:4]:
-        bName = re.split(r"\(|\)|,", tree[:b])[-1]
+            clade.comment = "&"
 
-        if bName in bM:
-            totalM = float(bM[bName])
-            for m in mutationTypes:
-                if (bName + ":" + "C>A") in bMT:
-                    CA = float(bMT[bName + ":" + "C>A"])
-                    PCA = CA/totalM
+            if clade.name:
+                cladeName = clade.name
+            else:
+                cladeName = clade.confidence
+            
+            #Label the branch with the total number of mutations and mutations of each type
+            if cladeName in bM:
+                totalM = float(bM[cladeName])
+
+                #Calculate the number and proportion of each mutation type
+                if (cladeName + ":C>A") in bMT:
+                    CA = float(bMT[cladeName + ":C>A"])
+                    P_CA = CA/totalM
                 else:
-                    CA = "0"
-                    PCA = "0"
-                if (bName + ":" + "C>G") in bMT:
-                    CG = float(bMT[bName + ":" + "C>G"])
-                    PCG = CG/totalM
+                    CA = float(0)
+                    P_CA = float(0)
+                
+                if (cladeName + ":C>G") in bMT:
+                    CG = float(bMT[cladeName + ":C>G"])
+                    P_CG = CG/totalM
                 else:
-                    CG = "0"
-                    PCG = "0"
-                if (bName + ":" + "C>T") in bMT:
-                    CT = float(bMT[bName + ":" + "C>T"])
-                    PCT = CT/totalM
+                    CG = float(0)
+                    P_CG = float(0)
+                
+                if (cladeName + ":C>T") in bMT:
+                    CT = float(bMT[cladeName + ":C>T"])
+                    P_CT = CT/totalM
                 else:
-                    CT = "0"
-                    PCT = "0"
-                if (bName + ":" + "T>A") in bMT:
-                    TA = float(bMT[bName + ":" + "T>A"])
-                    PTA = TA/totalM
+                    CT = float(0)
+                    P_CT = float(0)
+                
+                if (cladeName + ":T>A") in bMT:
+                    TA = float(bMT[cladeName + ":T>A"])
+                    P_TA = TA/totalM
                 else:
-                    TA = "0"
-                    PTA = "0"
-                if (bName + ":" + "T>C") in bMT:
-                    TC = float(bMT[bName + ":" + "T>C"])
-                    PTC = TC/totalM
+                    TA = float(0)
+                    P_TA = float(0)
+                
+                if (cladeName + ":T>C") in bMT:
+                    TC = float(bMT[cladeName + ":T>C"])
+                    P_TC = TC/totalM
                 else:
-                    TC = "0"
-                    PTC = "0"
-                if (bName + ":" + "T>G") in bMT:
-                    TG = float(bMT[bName + ":" + "T>G"])
-                    PTG = TG/totalM
+                    TC = float(0)
+                    P_TC = float(0)
+                
+                if (cladeName + ":T>G") in bMT:
+                    TG = float(bMT[cladeName + ":T>G"])
+                    P_TG = TG/totalM
                 else:
-                    TG = "0"
-                    PTG = "0"
-        else:
-            totalM = "0"
-            CA = "0"
-            PCA = "0"
-            CG = "0"
-            PCG = "0"
-            CT = "0"
-            PCT = "0"
-            TA = "0"
-            PTA = "0"
-            TC = "0"
-            PTC = "0"
-            TG = "0"
-            PTG = "0"
+                    TG = float(0)
+                    P_TG = float(0)
+                
+                clade.comment += "total_mutations=" + str(totalM)
+                clade.comment += ",C>A=" + str(CA) 
+                clade.comment += ",C>G=" + str(CG)
+                clade.comment += ",C>T=" + str(CT)
+                clade.comment += ",T>A=" + str(TA)
+                clade.comment += ",T>C=" + str(TC)
+                clade.comment += ",T>G=" + str(TG)
+                clade.comment += ",P_C>A=" + str(P_CA)
+                clade.comment += ",P_C>G=" + str(P_CG)
+                clade.comment += ",P_C>T=" + str(P_CT)
+                clade.comment += ",P_T>A=" + str(P_TA)
+                clade.comment += ",P_T>C=" + str(P_TC)
+                clade.comment += ",P_T>G=" + str(P_TG)
+            
+            #If the clade has no mutations, all of its mutations will be 0
+            else:
+                clade.comment += "total_mutations=0,C>A=0,C>G=0,C>T=0,T>A=0,T>C=0,T>G=0,P_C>A=0,P_C>G=0,P_C>T=0,P_T>A=0,P_T>C=0,P_T>G=0"
+        
+        clade.confidence = None
+    
+    return(tree)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -98,7 +117,6 @@ if __name__ == "__main__":
     #Open output file
     outFile = open(args.outfile + ".csv", "w")
     outFile.write("Branch,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
-    outFileTree = open(args.outfile + ".nex", "w")
 
     #Will be filled with branches as keys and total number of mutations as values
     bM = dict()
@@ -146,16 +164,10 @@ if __name__ == "__main__":
         outFile.write("\n")
     
     #Import the tree as a string
-    #tree = Phylo.read(args.tree.name, "nexus")
-    tree = open(args.tree.name).readlines()
-    #Iterate through the lines in the nexus tree
-    #If they are not the tree, write them to the tree outfile
-    #If they are the tree, convert the mutations part of the tree to mutation proportions
-    for line in tree:
-        if line[:5] == " Tree":
-            convertTreeMutations(line, bM, bMT, mutationTypes)
-        else:
-            outFileTree.write(line)
+    tree = Phylo.read(args.tree.name, "nexus")
+
+    #Label each branch with its mutation proportions and write
+    labelledTree = convertTreeMutations(tree, bM, bMT)
+    Phylo.write(labelledTree, args.outfile + ".nex", "nexus")
     
     outFile.close()
-    outFileTree.close()
