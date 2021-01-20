@@ -7,10 +7,7 @@
 import argparse
 from Bio import Phylo
 import re
-
-#Takes a string and returns all indices of a given character
-def getAllIndices(s, c):
-    return([i for i, ltr in enumerate(s) if ltr == c])
+from io import StringIO
 
 #Labels each branch in a tree with its total mutations and mutation proportions
 def convertTreeMutations(tree, bM, bMT):
@@ -19,12 +16,15 @@ def convertTreeMutations(tree, bM, bMT):
         #Do not analyse the root
         if len(tree.get_path(clade)) != 0:
 
-            clade.comment = "&"
-
             if clade.name:
                 cladeName = clade.name
             else:
                 cladeName = clade.confidence
+            
+            if clade.is_terminal():
+                clade.name = clade.name + "[&"
+            else:
+                clade.name = "[&"
             
             #Label the branch with the total number of mutations and mutations of each type
             if cladeName in bM:
@@ -73,27 +73,76 @@ def convertTreeMutations(tree, bM, bMT):
                     TG = float(0)
                     P_TG = float(0)
                 
-                clade.comment += "total_mutations=" + str(totalM)
-                clade.comment += ",C>A=" + str(CA) 
-                clade.comment += ",C>G=" + str(CG)
-                clade.comment += ",C>T=" + str(CT)
-                clade.comment += ",T>A=" + str(TA)
-                clade.comment += ",T>C=" + str(TC)
-                clade.comment += ",T>G=" + str(TG)
-                clade.comment += ",P_C>A=" + str(P_CA)
-                clade.comment += ",P_C>G=" + str(P_CG)
-                clade.comment += ",P_C>T=" + str(P_CT)
-                clade.comment += ",P_T>A=" + str(P_TA)
-                clade.comment += ",P_T>C=" + str(P_TC)
-                clade.comment += ",P_T>G=" + str(P_TG)
+                #clade.comment += "total_mutations=" + str(totalM)
+                #clade.comment += ",C_A=" + str(CA) 
+                #clade.comment += ",C_G=" + str(CG)
+                #clade.comment += ",C_T=" + str(CT)
+                #clade.comment += ",T_A=" + str(TA)
+                #clade.comment += ",T_C=" + str(TC)
+                #clade.comment += ",T_G=" + str(TG)
+                #clade.comment += ",P_C_A=" + str(P_CA)
+                #clade.comment += ",P_C_G=" + str(P_CG)
+                #clade.comment += ",P_C_T=" + str(P_CT)
+                #clade.comment += ",P_T_A=" + str(P_TA)
+                #clade.comment += ",P_T_C=" + str(P_TC)
+                #clade.comment += ",P_T_G=" + str(P_TG)
+                #clade.confidence += "total_mutations=" + str(totalM)
+                #clade.confidence += ",C_A=" + str(CA) 
+                #clade.confidence += ",C_G=" + str(CG)
+                #clade.confidence += ",C_T=" + str(CT)
+                #clade.confidence += ",T_A=" + str(TA)
+                #clade.confidence += ",T_C=" + str(TC)
+                #clade.confidence += ",T_G=" + str(TG)
+                #clade.confidence += ",P_C_A=" + str(P_CA)
+                #clade.confidence += ",P_C_G=" + str(P_CG)
+                #clade.confidence += ",P_C_T=" + str(P_CT)
+                #clade.confidence += ",P_T_A=" + str(P_TA)
+                #clade.confidence += ",P_T_C=" + str(P_TC)
+                #clade.confidence += ",P_T_G=" + str(P_TG)
+                clade.name += "total_mutations=" + str(totalM)
+                clade.name += ",C_A=" + str(CA) 
+                clade.name += ",C_G=" + str(CG)
+                clade.name += ",C_T=" + str(CT)
+                clade.name += ",T_A=" + str(TA)
+                clade.name += ",T_C=" + str(TC)
+                clade.name += ",T_G=" + str(TG)
+                clade.name += ",P_C_A=" + str(P_CA)
+                clade.name += ",P_C_G=" + str(P_CG)
+                clade.name += ",P_C_T=" + str(P_CT)
+                clade.name += ",P_T_A=" + str(P_TA)
+                clade.name += ",P_T_C=" + str(P_TC)
+                clade.name += ",P_T_G=" + str(P_TG)
+
             
             #If the clade has no mutations, all of its mutations will be 0
             else:
-                clade.comment += "total_mutations=0,C>A=0,C>G=0,C>T=0,T>A=0,T>C=0,T>G=0,P_C>A=0,P_C>G=0,P_C>T=0,P_T>A=0,P_T>C=0,P_T>G=0"
+                #clade.comment += "total_mutations=0,C_A=0,C_G=0,C_T=0,T_A=0,T_C=0,T_G=0,P_C_A=0,P_C_G=0,P_C_T=0,P_T_A=0,P_T_C=0,P_T_G=0"
+                clade.name += "total_mutations=0,C_A=0,C_G=0,C_T=0,T_A=0,T_C=0,T_G=0,P_C_A=0,P_C_G=0,P_C_T=0,P_T_A=0,P_T_C=0,P_T_G=0"
+            
+            clade.name += "]"
+        
+        else:
+            clade.name = None
         
         clade.confidence = None
+        clade.comment = None
+
+        #if not clade.is_terminal():
+        #    clade.name = None
     
     return(tree)
+
+#Converts tip names to a dictionary, used to write trees in BEAST format
+def convertTipDict(tree):
+    tips = dict()
+
+    tipList = list()
+
+    for i, tip in enumerate(tree.get_terminals()):
+        tips[tip.name] = i + 1
+        tipList.append(tip.name)
+    
+    return(tips, tipList)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -114,9 +163,11 @@ if __name__ == "__main__":
                         "Output tree will be this followed by .nex")
     args = parser.parse_args()
 
-    #Open output file
+    #Open output files
     outFile = open(args.outfile + ".csv", "w")
     outFile.write("Branch,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
+    outFile_tree = open(args.outfile + "_temp.nex", "w")
+    outFile_tree_2 = open(args.outfile + ".nex", "w")
 
     #Will be filled with branches as keys and total number of mutations as values
     bM = dict()
@@ -166,8 +217,42 @@ if __name__ == "__main__":
     #Import the tree as a string
     tree = Phylo.read(args.tree.name, "nexus")
 
+    #Convert the tips so they can be written in BEAST format
+    tipDict, tipList = convertTipDict(tree)
+    #Change the tip names in the tree to their numeric identifier
+    for tip in tree.get_terminals():
+        tip.name = str(tipDict[tip.name])
+
     #Label each branch with its mutation proportions and write
     labelledTree = convertTreeMutations(tree, bM, bMT)
-    Phylo.write(labelledTree, args.outfile + ".nex", "nexus")
+    
+    #Write the labelled tree
+    outFile_tree.write("#NEXUS\n\nBegin taxa;\n\tDimensions ntax=")
+    outFile_tree.write(str(len(tipList)))
+    outFile_tree.write(";\n\t\tTaxLabels\n")
+    for t in tipList:
+        outFile_tree.write("\t\t\t" + t + "\n")
+    outFile_tree.write("\t\t\t;\nEnd;\nBegin trees;\n\tTranslate\n")
+    for t in tipDict:
+        outFile_tree.write("\t\t")
+        nD = len(str(tipDict[t]))
+        if nD == 1:
+            outFile_tree.write("   ")
+        elif nD == 2:
+            outFile_tree.write("  ")
+        elif nD == 3:
+            outFile_tree.write(" ")
+        outFile_tree.write(str(tipDict[t]) + " " + t + ",\n")
+    outFile_tree.write(";\ntree TREE1 = ")
+    Phylo.write(labelledTree, outFile_tree, "newick")
+    outFile_tree.write("End;")
     
     outFile.close()
+    outFile_tree.close()
+
+    #Remove quotes from the tree
+    treeString = open(outFile_tree.name).readlines()
+    for line in treeString:
+        outFile_tree_2.write(line.replace("\n", "").replace("'", "") + "\n")
+
+    outFile_tree_2.close()
