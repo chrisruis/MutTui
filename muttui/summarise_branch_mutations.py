@@ -6,8 +6,7 @@
 
 import argparse
 from Bio import Phylo
-import re
-from io import StringIO
+import os
 
 #Labels each branch in a tree with its total mutations and mutation proportions
 def convertTreeMutations(tree, bM, bMT):
@@ -73,32 +72,6 @@ def convertTreeMutations(tree, bM, bMT):
                     TG = float(0)
                     P_TG = float(0)
                 
-                #clade.comment += "total_mutations=" + str(totalM)
-                #clade.comment += ",C_A=" + str(CA) 
-                #clade.comment += ",C_G=" + str(CG)
-                #clade.comment += ",C_T=" + str(CT)
-                #clade.comment += ",T_A=" + str(TA)
-                #clade.comment += ",T_C=" + str(TC)
-                #clade.comment += ",T_G=" + str(TG)
-                #clade.comment += ",P_C_A=" + str(P_CA)
-                #clade.comment += ",P_C_G=" + str(P_CG)
-                #clade.comment += ",P_C_T=" + str(P_CT)
-                #clade.comment += ",P_T_A=" + str(P_TA)
-                #clade.comment += ",P_T_C=" + str(P_TC)
-                #clade.comment += ",P_T_G=" + str(P_TG)
-                #clade.confidence += "total_mutations=" + str(totalM)
-                #clade.confidence += ",C_A=" + str(CA) 
-                #clade.confidence += ",C_G=" + str(CG)
-                #clade.confidence += ",C_T=" + str(CT)
-                #clade.confidence += ",T_A=" + str(TA)
-                #clade.confidence += ",T_C=" + str(TC)
-                #clade.confidence += ",T_G=" + str(TG)
-                #clade.confidence += ",P_C_A=" + str(P_CA)
-                #clade.confidence += ",P_C_G=" + str(P_CG)
-                #clade.confidence += ",P_C_T=" + str(P_CT)
-                #clade.confidence += ",P_T_A=" + str(P_TA)
-                #clade.confidence += ",P_T_C=" + str(P_TC)
-                #clade.confidence += ",P_T_G=" + str(P_TG)
                 clade.name += "total_mutations=" + str(totalM)
                 clade.name += ",C_A=" + str(CA) 
                 clade.name += ",C_G=" + str(CG)
@@ -112,11 +85,9 @@ def convertTreeMutations(tree, bM, bMT):
                 clade.name += ",P_T_A=" + str(P_TA)
                 clade.name += ",P_T_C=" + str(P_TC)
                 clade.name += ",P_T_G=" + str(P_TG)
-
             
             #If the clade has no mutations, all of its mutations will be 0
             else:
-                #clade.comment += "total_mutations=0,C_A=0,C_G=0,C_T=0,T_A=0,T_C=0,T_G=0,P_C_A=0,P_C_G=0,P_C_T=0,P_T_A=0,P_T_C=0,P_T_G=0"
                 clade.name += "total_mutations=0,C_A=0,C_G=0,C_T=0,T_A=0,T_C=0,T_G=0,P_C_A=0,P_C_G=0,P_C_T=0,P_T_A=0,P_T_C=0,P_T_G=0"
             
             clade.name += "]"
@@ -126,9 +97,6 @@ def convertTreeMutations(tree, bM, bMT):
         
         clade.confidence = None
         clade.comment = None
-
-        #if not clade.is_terminal():
-        #    clade.name = None
     
     return(tree)
 
@@ -214,13 +182,19 @@ if __name__ == "__main__":
         
         outFile.write("\n")
     
-    #Import the tree as a string
+    #Import the tree
     tree = Phylo.read(args.tree.name, "nexus")
 
     #Convert the tips so they can be written in BEAST format
     tipDict, tipList = convertTipDict(tree)
     #Change the tip names in the tree to their numeric identifier
     for tip in tree.get_terminals():
+        #Add each numeric identifier to bM and bMT so the tip stats can be added to the tree
+        if tip.name in bM:
+            bM[str(tipDict[tip.name])] = bM[tip.name]
+        for mT in mutationTypes:
+            if (tip.name + ":" + mT) in bMT:
+                bMT[str(tipDict[tip.name]) + ":" + mT] = bMT[tip.name + ":" + mT]
         tip.name = str(tipDict[tip.name])
 
     #Label each branch with its mutation proportions and write
@@ -254,5 +228,9 @@ if __name__ == "__main__":
     treeString = open(outFile_tree.name).readlines()
     for line in treeString:
         outFile_tree_2.write(line.replace("\n", "").replace("'", "") + "\n")
+    
+    #Remove the temp tree file
+    if os.path.exists(args.outfile + "_temp.nex"):
+        os.remove(args.outfile + "_temp.nex")
 
     outFile_tree_2.close()
