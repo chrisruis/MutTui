@@ -91,7 +91,8 @@ def getReference(reference, all_sites, alignment, positionTranslation):
     #starting sequence and updates based on this
     else:
         ref = AlignIO.read(reference.name, "fasta")
-        refSeq = ref[0].seq
+        #Extract the sequence of the reference and ensure it is uppercase
+        refSeq = ref[0].seq.upper()
 
         #Reverse the position translation so genome positions are keys and alignment positions are values
         #Can then iterate through the genome positions and check if they are in this
