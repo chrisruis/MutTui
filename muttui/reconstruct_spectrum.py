@@ -468,6 +468,22 @@ def getRNADict():
 
     return(mutation)
 
+#Calculates the number of each mutation type in the spectrum
+#Takes a mutational spectrum dictionary
+#Returns a dictionary with mutation types as keys and counts as values
+def mutationTypeCount(spectrum, rna):
+    #Empty dictionary of mutation counts
+    if rna:
+        mtDict = {"AC": 0, "AG": 0, "AT": 0, "CA": 0, "CG": 0, "CT": 0, "GA": 0, "GC": 0, "GT": 0, "TA": 0, "TC": 0, "TG": 0}
+    else:
+        mtDict = {"CA": 0, "CG": 0, "CT": 0, "TA": 0, "TC": 0, "TG": 0}
+    
+    #Iterate through the mutations in the spectrum, extract their mutation type and add to the corresponding dictionary mutation
+    for m in spectrum:
+        mtDict[m[1] + m[2]] += spectrum[m]
+    
+    return(mtDict)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", help = "ancestral_sequences.fasta from treetime")

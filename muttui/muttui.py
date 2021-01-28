@@ -267,7 +267,6 @@ def main():
     #Write the spectra to separate files
     for eachLabel in spectraDict:
         outFile = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".csv", "w")
-        #outFileCatalog = open(args.output_dir + "catalog_label_" + eachLabel + ".csv", "w")
         outFile.write("Substitution,Number_of_mutations\n")
         for eachMutation in spectraDict[eachLabel]:
             outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(spectraDict[eachLabel][eachMutation]) + "\n")
@@ -278,6 +277,20 @@ def main():
         spectrumFormat = convertSpectrumFormat(spectraDict[eachLabel])
         plotSpectrumFromDict(spectrumFormat, outSpectrum)
         outSpectrum.close()
+
+        #Calculate the number of each type of mutation
+        mtCounts = mutationTypeCount(spectraDict[eachLabel], args.rna)
+        #Write the mutation type counts
+        outMT = open(args.output_dir + "mutation_types_label_" + eachLabel + ".csv", "w")
+        outMT.write("Mutation_type,Number_of_mutations\n")
+        for m in mtCounts:
+            outMT.write(m + "," + str(mtCounts[m]) + "\n")
+        outMT.close()
+
+        #Plot the mutation type counts
+        outMTSpectrum = open(args.output_dir + "mutation_types_label_" + eachLabel + ".pdf", "w")
+        plotMutationType(mtCounts, outMTSpectrum)
+        outMTSpectrum.close()
 
     #Close output files
     outMutationsNotUsed.close()

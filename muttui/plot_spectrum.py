@@ -47,7 +47,7 @@ def plotSpectrumFromDict(spectrum, outFile):
     labels = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
 
     #Used to plot the rectangles above the plot containing the mutation type
-    rect_lower = float(np.max(mutationCounts)) + float(np.max(mutationCounts) * 0.05) #abs(np.quantile(mutationCounts, 0.05))
+    rect_lower = float(np.max(mutationCounts)) + float(np.max(mutationCounts) * 0.05)
     rect_width = float(np.max(mutationCounts)) * 0.1
 
     #The coordinates of the mutation type rectangles and text
@@ -68,7 +68,31 @@ def plotSpectrumFromDict(spectrum, outFile):
     plt.xlabel("Mutation")
     plt.ylabel("Number of mutations")
     plt.margins(0)
-    #plt.tick_params(axis = "x", which = "both", bottom = False, labelbottom = False)
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
+
+#Plots the number of mutations of each type, combining all contexts from that type
+def plotMutationType(mtCounts, outFile):
+    #Extract the mutations and counts to separate lists
+    mutations = list(mtCounts.keys())
+    mutationCounts = list(mtCounts.values())
+    #Convert the counts to proportions
+    mutationProportions = list()
+    totalMutations = float(sum(mutationCounts))
+    for m in mutationCounts:
+        mutationProportions.append(float(m)/totalMutations)
+
+    #Colours of the bars
+    colourSet = ["blue", "black", "red", "grey", "green", "pink"]
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.bar(mutations, mutationProportions, color = colourSet)
+    plt.xlabel("Mutation type")
+    plt.ylabel("Proportion of mutations")
+
     if type(outFile) == str:
         plt.savefig(outFile)
     else:
