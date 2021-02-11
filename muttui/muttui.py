@@ -145,10 +145,14 @@ def main():
     else:
         #Run treetime on the input alignment and tree with any provided options
         run_treetime(args.alignment, args.tree, args.output_dir, args.add_treetime_cmds)
+    
+    print("treetime reconstruction complete. Importing alignment and tree from reconstruction")
 
     #Import the alignment and tree from treetime
     alignment = AlignIO.read(args.output_dir + "ancestral_sequences.fasta", "fasta")
     tree = Phylo.read(args.output_dir + "annotated_tree.nexus", "nexus")
+
+    print("Alignment and tree imported. Reconstructing spectrum")
 
     #Label branches in the tree into categories, each category will have a separate spectrum
     if args.labels:
