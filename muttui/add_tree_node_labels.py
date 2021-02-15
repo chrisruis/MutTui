@@ -4,6 +4,16 @@
 import argparse
 from Bio import Phylo
 
+#Removes confidence values from the tree
+#These will be bootstrap supports, etc that will be written with the node labels if not removed
+def cleanTree(tree):
+    #Iterate through the clades and remove clade confidence values
+    for clade in tree.find_clades():
+        if clade.confidence:
+            clade.confidence = None
+    
+    return(tree)
+
 #Adds node labels to a given tree
 def labelTreeNodes(tree):
     #Will be incremented with each node
@@ -32,8 +42,11 @@ if __name__ == "__main__":
                         help = "Output tree file")
     args = parser.parse_args()
 
+    #Clean the tree to remove any bootstrap supports
+    tree = cleanTree(Phylo.read(args.tree.name, "newick"))
+    
     #Label the tree nodes
-    labelledTree = labelTreeNodes(Phylo.read(args.tree.name, "newick"))
+    labelledTree = labelTreeNodes(tree)
 
     #Write the labelled tree
     Phylo.write(labelledTree, args.outFile, "newick")
