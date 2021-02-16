@@ -4,6 +4,7 @@
 
 import argparse
 from Bio import Phylo
+from add_tree_node_labels import cleanTree
 
 #Labels the nodes and tips of the tree with their names
 def labelAllClades(tree):
@@ -95,8 +96,11 @@ if __name__ == "__main__":
                         help = "Output newick tree file")
     args = parser.parse_args()
 
+    #Clean the tree to remove any bootstrap supports
+    tree = cleanTree(Phylo.read(args.tree.name, "newick"))
+
     #Label the tree
-    labelledTree = labelAllClades(Phylo.read(args.tree.name, "newick"))
+    labelledTree = labelAllClades(tree)
 
     #Extract the state changes to a dictionary, node names as keys, states as values
     stateDict = getStateDict(args.state_changes)
