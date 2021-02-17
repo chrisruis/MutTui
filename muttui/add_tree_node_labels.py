@@ -9,7 +9,7 @@ from Bio import Phylo
 def cleanTree(tree):
     #Iterate through the clades and remove clade confidence values
     for clade in tree.find_clades():
-        if clade.confidence:
+        if clade.confidence or (clade.confidence = 0.0):
             clade.confidence = None
     
     return(tree)
