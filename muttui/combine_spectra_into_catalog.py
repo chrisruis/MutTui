@@ -30,11 +30,13 @@ if __name__ == "__main__":
                         "--outFile",
                         dest = "outFile",
                         required = True,
-                        help = "Output csv catalog")
+                        help = "Output file prefix. Two files will be written - a csv catalog" + 
+                        " and a tab separated mutation matrix")
     
     args = parser.parse_args()
 
-    outFile = open(args.outFile, "w")
+    outFile = open(args.outFile + ".csv", "w")
+    outFileMatrix = open(args.outFile + ".txt", "w")
 
     #List of spectra
     spectraDict = {}
@@ -61,19 +63,25 @@ if __name__ == "__main__":
     for eachSample in sampleDict:
         conversionFile.write(sampleDict[eachSample] + "," + eachSample + "\n")
     
-    #Write the header to the output file
+    #Write the header to the output files
     outFile.write("Substitution")
+    outFileMatrix.write("Mutation Types")
     for sample in sampleDict:
         outFile.write("," + sample)
+        outFileMatrix.write("\t" + sample)
     outFile.write("\n")
+    outFileMatrix.write("\n")
     
     #Iterate through the mutations and write their number in each sample
     firstKey = list(spectraDict.keys())[0]
     for mutation in spectraDict[firstKey]:
         outFile.write(mutation)
+        outFileMatrix.write(mutation)
         for sample in sampleDict:
             outFile.write("," + str(spectraDict[sampleDict[sample]][mutation]))
+            outFileMatrix.write("\t" + str(spectraDict[sampleDict[sample]][mutation]))
         outFile.write("\n")
+        outFileMatrix.write("\n")
 
     outFile.close()
     conversionFile.close()
