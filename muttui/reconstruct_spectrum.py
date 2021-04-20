@@ -77,6 +77,26 @@ def getBranchDict(tree, positionTranslation):
     
     return(branchDict)
 
+#Extracts the mutations in branch_mutations.txt to a dictionary with branch names as keys and mutations as values
+def getBranchMutationDict(branchFile, translation):
+    branchDict = {}
+
+    #Iterate through the mutations and add to branchDict
+    with open(branchFile) as fileobject:
+        #Skip header
+        next(fileobject)
+
+        for line in fileobject:
+            node = line.strip().split("\t")[0]
+
+            if node in branchDict:
+                branchDict[node].append([line.strip().split("\t")[1], int(line.strip().split("\t")[2]), translation[int(line.strip().split("\t")[2])], line.strip().split("\t")[3]])
+            else:
+                branchDict[node] = [[line.strip().split("\t")[1], int(line.strip().split("\t")[2]), translation[int(line.strip().split("\t")[2])], line.strip().split("\t")[3]]]
+    
+    return(branchDict)
+
+
 #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
 #and the root sequence from the ancestral reconstruction is used
 def getReference(reference, all_sites, alignment, positionTranslation):
@@ -122,6 +142,26 @@ def getReference(reference, all_sites, alignment, positionTranslation):
 #that mutated along an upstream branch to the mutated base
 #If a position has changed multiple times along the upstream branches, this keeps the most recent change as the
 #clades are iterated through from the root through to the most recent upstream branch
+####Used when reading in the annotated tree
+####def updateReference(tree, clade, branchMutationDict, refSeq):
+    ####Convert the reference sequence to an array
+    ####referenceArray = array.array("u", refSeq)
+
+    ####Iterate through the upstream branches leading to the node at the start of the current branch
+    ####for upstreamClade in tree.get_path(clade)[:-1]:
+        ####Check if there are any mutations along the current upstream branch
+        ####if branchMutationDict[getBranchName(tree, upstreamClade)] != "None":
+            ####Iterate through the previous mutations and update the reference sequence
+            ####for eachMutation in branchMutationDict[getBranchName(tree, upstreamClade)]:
+                ####referenceArray[eachMutation[2] - 1] = eachMutation[3]
+    
+    ####return("".join(referenceArray))
+
+#Updates the original reference sequence so it includes the mutations acquired up to the given clade
+#Converts the reference to an array, iterates through the upstream branches and updates each of the positions
+#that mutated along an upstream branch to the mutated base
+#If a position has changed multiple times along the upstream branches, this keeps the most recent change as the
+#clades are iterated through from the root through to the most recent upstream branch
 def updateReference(tree, clade, branchMutationDict, refSeq):
     #Convert the reference sequence to an array
     referenceArray = array.array("u", refSeq)
@@ -129,9 +169,9 @@ def updateReference(tree, clade, branchMutationDict, refSeq):
     #Iterate through the upstream branches leading to the node at the start of the current branch
     for upstreamClade in tree.get_path(clade)[:-1]:
         #Check if there are any mutations along the current upstream branch
-        if branchMutationDict[getBranchName(tree, upstreamClade)] != "None":
+        if upstreamClade.name in branchMutationDict:
             #Iterate through the previous mutations and update the reference sequence
-            for eachMutation in branchMutationDict[getBranchName(tree, upstreamClade)]:
+            for eachMutation in branchMutationDict[upstreamClade.name]:
                 referenceArray[eachMutation[2] - 1] = eachMutation[3]
     
     return("".join(referenceArray))

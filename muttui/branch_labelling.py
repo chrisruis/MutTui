@@ -49,6 +49,19 @@ def labelAllBranches(tree):
     
     return(tree, treeLabels)
 
+#Labels branches in a given tree with names as in treetime
+#Branches are labelled from NODE_0000000 onwards
+def labelBranchesTreetime(tree):
+    #Appended with each internal node
+    iterator = 0
+
+    for clade in tree.find_clades():
+        if not clade.is_terminal():
+            clade.name = "NODE_" + str(iterator).zfill(7)
+            iterator += 1
+    
+    return(tree)
+
 #Writes the label dictionary to a file that can be used by treetime mugration
 def writeLabels(labelDict, out_dir):
     labelFile = open(out_dir + "all_taxon_labels.csv", "w")
