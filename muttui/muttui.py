@@ -98,6 +98,14 @@ def get_options():
                         help = "Specify that the alignment contains all sites, in which case a reference genome does not need to be provided",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--include_all_branches",
+                        dest = "include_all_branches",
+                        help = "Use when specifying a labelled tree with -lt. By default, the branches along which the label " + 
+                        "changes are excluded as it is often not clear at what point along the branch the label changed. With " + 
+                        "adding --include_all_branches, all of the branches along which a label changes will be included in the " + 
+                        "spectrum of the downstream label",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-rs",
                         "--root_state",
                         dest = "root_state",
@@ -226,7 +234,7 @@ def main():
         #Check if there are mutations along the current branch, only need to analyse branches with mutations
         if clade.name in branchMutationDict:
             #The label of the current branch, this will be None if the label changes along this branch
-            branchCategory = getBranchCategory(labelledTree, clade)
+            branchCategory = getBranchCategory(labelledTree, clade, args.include_all_branches)
 
             #Extract the mutations along the branch. This will be None if there are no mutations but treetime has still added the mutation comment
             branchMutations = branchMutationDict[clade.name]

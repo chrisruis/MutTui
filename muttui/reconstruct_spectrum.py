@@ -176,19 +176,26 @@ def updateReference(tree, clade, branchMutationDict, refSeq):
     
     return("".join(referenceArray))
 
-#Identifies the label category of a given branch, returns None if the branch is a transition between labels
-def getBranchCategory(tree, clade):
+#Identifies the label category of a given branch
+#By default returns None if the branch is a transition between labels
+#If --include_all_branches is used, no branches are labelled None and transition branches are
+#labelled with the downstream node's label
+def getBranchCategory(tree, clade, include_all_branches):
     #Identify the label of the upstream node
     #Check if the upstream node is the root
     if len(tree.get_path(clade)) >= 2:
         #Check if the label of the upstream clade is the same as the clade
         if clade.clade_label == tree.get_path(clade)[-2].clade_label:
             return(clade.clade_label)
+        elif include_all_branches:
+            return(clade.clade_label)
         else:
             return(None)
     
     else:
         if clade.clade_label == tree.root.clade_label:
+            return(clade.clade_label)
+        elif include_all_branches:
             return(clade.clade_label)
         else:
             return(None)
