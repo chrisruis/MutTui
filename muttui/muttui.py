@@ -8,6 +8,7 @@ import subprocess
 import array
 from Bio import AlignIO, Phylo
 from collections import OrderedDict
+import gffutils as gff
 from add_tree_node_labels import *
 from branch_labelling import *
 from reconstruct_spectrum import *
@@ -68,6 +69,13 @@ def get_options():
                         help = "Conversion file for alignment position to genome position, used to get context of mutations, not required if using --all_sites",
                         type = argparse.FileType("r"),
                         default = None)
+    io_opts.add_argument("-g",
+                        "--gff",
+                        dest = "gff",
+                        help = "GFF reference containing gene coordinates in reference sequence. Used to split mutations into transcription strands " + 
+                        "and identify synonymous mutations when --synonymous is used",
+                        type = argparse.FileType("r"),
+                        default = None)
     io_opts.add_argument("-s",
                         "--spectra_to_combine",
                         dest = "spectra_to_combine",
@@ -77,6 +85,13 @@ def get_options():
                         "the spectra from multiple patients into a single within-patient spectrum. This file has no header. Each row " + 
                         "is a set of labels to be combined separated by commas",
                         type = argparse.FileType("r"),
+                        default = None)
+    io_opts.add_argument("-to",
+                        "--treetime_out",
+                        dest = "treetime_out",
+                        help = "The location of the directory containing treetime output files from ancestral reconstruction. Only " + 
+                        "used if option --start_from_treetime is specified, in which case the output files in this directory will " + 
+                        "be used to calculate the mutational spectrum",
                         default = None)
     
     #Options to include in treetime reconstruction
@@ -124,6 +139,18 @@ def get_options():
                         "Use this option if your alignment contains many gaps",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--start_from_treetime",
+                        dest = "start_from_treetime",
+                        help = "Use this option to start with treetime output and so skip inference of ancestral mutations. Use this " + 
+                        "if you have already run treetime. The directory containing the treetime output files needs to be provided with -to",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("--synonymous",
+                        dest = "synonymous",
+                        help = "Use non-coding and synonymous mutations only to calculate the mutational spectrum. A GFF file will need to be " + 
+                        "provided with option -g which will be used to identify genes",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--version",
                         action = "version",
                         version = "%(prog)s " + __version__)
@@ -144,30 +171,36 @@ def main():
     outAllMutations = open(args.output_dir + "all_included_mutations.csv", "w")
     outAllMutations.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch\n")
 
-    print("Running treetime ancestral reconstruction to identify mutations")
+    if not args.start_from_treetime:
+        print("Running treetime ancestral reconstruction to identify mutations")
 
-    #Check if the alignment is to be converted so gaps become Ns. If so, run the conversion
-    #and run treetime on the new alignment
-    if args.filter:
-        change_gaps_to_Ns(args.alignment, args.output_dir)
-        run_treetime(open(args.output_dir + "gaps_to_N_alignment.fasta"), args.tree, args.output_dir, args.add_treetime_cmds)
-    else:
-        #Run treetime on the input alignment and tree with any provided options
-        run_treetime(args.alignment, args.tree, args.output_dir, args.add_treetime_cmds)
+        #Check if the alignment is to be converted so gaps become Ns. If so, run the conversion
+        #and run treetime on the new alignment
+        if args.filter:
+            change_gaps_to_Ns(args.alignment, args.output_dir)
+            run_treetime(open(args.output_dir + "gaps_to_N_alignment.fasta"), args.tree, args.output_dir, args.add_treetime_cmds)
+        else:
+            #Run treetime on the input alignment and tree with any provided options
+            run_treetime(args.alignment, args.tree, args.output_dir, args.add_treetime_cmds)
     
-    print("treetime reconstruction complete. Importing alignment and tree from reconstruction")
+        print("treetime reconstruction complete. Importing alignment from reconstruction and tree")
 
-    #Import the alignment and tree from treetime
-    alignment = AlignIO.read(args.output_dir + "ancestral_sequences.fasta", "fasta")
-    ####Used to import the annotated tree. Removed to use the branch_mutations.txt file
-    ####tree = Phylo.read(args.output_dir + "annotated_tree.nexus", "nexus")
-    ####Import the original unlabelled tree
+        #Import the alignment from treetime
+        alignment = AlignIO.read(args.output_dir + "ancestral_sequences.fasta", "fasta")
+        
+    else:
+        #Import the already calculated alignment from treetime
+        print("Importing alignment from reconstruction and tree")
+        #Make sure the trailing forward slash is present in output directory
+        args.treetime_out = os.path.join(args.treetime_out, "")
+
+        #Import the alignment from treetime
+        alignment = AlignIO.read(args.treetime_out + "ancestral_sequences.fasta", "fasta")
+    
+    #Import the original unlabelled tree
     tree = Phylo.read(args.tree.name, "newick")
     #Ladderize the tree so the branches are in the same order as the treetime tree
     tree.ladderize()
-    ####Label the tree with the same labels used by treetime
-    ####Added to support branch_mutations.txt
-    #tree = labelTreeNodes(tree)
     tree = labelBranchesTreetime(tree)
 
     print("Alignment and tree imported. Reconstructing spectrum")
@@ -218,11 +251,11 @@ def main():
     else:
         positionTranslation = convertTranslation(args.conversion)
     
-    #Extract mutations to dictionary with branches as keys and mutations as values
-    ####Version that took the annotated tree from treetime and extracted mutations from this
-    ####branchMutationDict = getBranchDict(labelledTree, positionTranslation)
-    ####Extracts mutations to a dictionary from the branch_mutations.txt file
-    branchMutationDict = getBranchMutationDict(args.output_dir + "branch_mutations.txt", positionTranslation)
+    #Extracts mutations to a dictionary from the branch_mutations.txt file
+    if not args.start_from_treetime:
+        branchMutationDict = getBranchMutationDict(args.output_dir + "branch_mutations.txt", positionTranslation)
+    else:
+        branchMutationDict = getBranchMutationDict(args.treetime_out + "branch_mutations.txt", positionTranslation)
 
     #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
     #and the root sequence from the ancestral reconstruction is used
