@@ -200,6 +200,58 @@ def getBranchCategory(tree, clade, include_all_branches):
         else:
             return(None)
 
+#Removes mutations that are at the start or end of the genome or do not involve 2 nucleotides
+#Writes the removed mutations to outMutationsNotUsed
+#Splits double substitutions into a separate list
+#Returns the filtered mutations as a list
+def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed):
+    positionsToRemove = []
+    doubleSubstitutions = []
+
+    #Check if there are double substitutions along the branch and remove these mutations
+    for mutation1 in range(0, len(branchMutations)):
+        #Check if the following mutation is at the adjacent genome position
+        if (mutation1 + 1) != len(branchMutations):
+            if branchMutations[mutation1 + 1][2] == (branchMutations[mutation1][2] + 1):
+                positionsToRemove.append(mutation1)
+                positionsToRemove.append(mutation1 + 1)
+                doubleSubstitutions.append(branchMutations[mutation1])
+                doubleSubstitutions.append(branchMutations[mutation1 + 1])
+        #Check if the position is at the start or end of the genome
+        if (branchMutations[mutation1][2] == 1) or (branchMutations[mutation1][2] == referenceLength):
+            positionsToRemove.append(mutation1)
+            #Write the mutation to the mutations not used file
+            outMutationsNotUsed.write(branchMutations[mutation1][0] + str(branchMutations[mutation1][1]) + branchMutations[mutation1][3] + "," + branchMutations[mutation1][0] + str(branchMutations[mutation1][2]) + branchMutations[mutation1][3] + "," + clade.name + ",End_of_genome\n")
+        #Check if the mutation does not involve 2 nucleotides
+        elif (branchMutations[mutation1][0] not in nucleotides) or (branchMutations[mutation1][3] not in nucleotides):
+            positionsToRemove.append(mutation1)
+            outMutationsNotUsed.write(branchMutations[mutation1][0] + str(branchMutations[mutation1][1]) + branchMutations[mutation1][3] + "," + branchMutations[mutation1][0] + str(branchMutations[mutation1][2]) + branchMutations[mutation1][3] + "," + clade.name + "Mutation_does_not_involve_two_nucleotides\n")
+    
+    #If there is a tract of 3 or more substitutions at adjacent positions, some of the mutations
+    #will be in doubleSubstitutions twice. Extract the unique double substitution positions
+    uniqueDoubleSubstitutions = []
+    if len(doubleSubstitutions) != 0:
+        dsSet = set()
+        for ds in doubleSubstitutions:
+            if tuple(ds) not in dsSet:
+                uniqueDoubleSubstitutions.append(ds)
+                dsSet.add(tuple(ds))
+    ####Write the double substitutions
+    ####Will be removed once double substitutions are incorporated
+    for uds in uniqueDoubleSubstitutions:
+        outMutationsNotUsed.write(uds[0] + str(uds[1]) + uds[3] + "," + uds[0] + str(uds[2]) + uds[3] + "," + clade.name + ",Double_substitution\n")
+    
+    #Remove the positions that will not be included in the spectrum
+    if len(positionsToRemove) != 0:
+        #Identify the unique set of positions, if there are 3 or more consecutive positions to be removed,
+        #at least one of these positions will be in positionsToRemove more than once
+        uniquePositionsToRemove = list(set(positionsToRemove))
+        #Remove the positions from the mutations
+        for ele in sorted(uniquePositionsToRemove, reverse = True):
+            del branchMutations[ele]
+    
+    return(branchMutations, uniqueDoubleSubstitutions)
+
 #Identifies the context of a mutation
 def getContext(mutation, updatedReference):
     return(updatedReference[mutation[2] - 2], updatedReference[mutation[2]])

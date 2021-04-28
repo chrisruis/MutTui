@@ -13,6 +13,7 @@ from add_tree_node_labels import *
 from branch_labelling import *
 from reconstruct_spectrum import *
 from plot_spectrum import *
+from gff_conversion import *
 
 from __init__ import __version__
 
@@ -145,6 +146,12 @@ def get_options():
                         "if you have already run treetime. The directory containing the treetime output files needs to be provided with -to",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--strand_bias",
+                        dest = "strand_bias",
+                        help = "Split mutations into transcribed and untranscribed strands to test for transcription strand bias. A GFF " + 
+                        "file will need to be provided with option -g to identify genes",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--synonymous",
                         dest = "synonymous",
                         help = "Use non-coding and synonymous mutations only to calculate the mutational spectrum. A GFF file will need to be " + 
@@ -204,6 +211,13 @@ def main():
     tree = labelBranchesTreetime(tree)
 
     print("Alignment and tree imported. Reconstructing spectrum")
+
+    #Check if a GFF file is needed, if so read it in and process it
+    if args.strand_bias or args.synonymous:
+        if not args.gff:
+            raise RuntimeError("GFF file needs to be provided with -g when using --strand_bias or --synonymous")
+        else:
+            geneCoordinates = convertGFF(args.gff.name)
 
     #Label branches in the tree into categories, each category will have a separate spectrum
     if args.labels:
@@ -272,54 +286,30 @@ def main():
             #Extract the mutations along the branch. This will be None if there are no mutations but treetime has still added the mutation comment
             branchMutations = branchMutationDict[clade.name]
 
-            #Check if there are mutations along the branch, the .comment is only added to the clade if there are
-            #Further check if there are mutations in branchDict along the branch as all mutations might have been removed
-            #Check if the branch has a category, will be none if the branch is a transition between categories
+            #Check if the branch has a category, will be None if the branch is a transition between categories
+            #and option --include_all_branches is not specified
             if branchCategory is not None:
-                #Check if there are double substitutions along the branch and remove these mutations
-                if len(branchMutations) > 1:
-                    positionsToRemove = []
-                    for mutation1 in range(0, (len(branchMutations) - 1)):
-                        for mutation2 in range((mutation1 + 1), len(branchMutations)):
-                            if branchMutations[mutation2][2] == (branchMutations[mutation1][2] + 1):
-                                positionsToRemove.append(mutation1)
-                                positionsToRemove.append(mutation2)
-                    if len(positionsToRemove) != 0:
-                        #Identify the unique set of positions, if there are 3 or more consecutive positions to be removed,
-                        #at least one of these positions will be in positionsToRemove more than once
-                        uniquePositionsToRemove = list(set(positionsToRemove))
-                        #Write the positions to the mutations not analysed file
-                        for removePosition in uniquePositionsToRemove:
-                            outMutationsNotUsed.write(branchMutations[removePosition][0] + str(branchMutations[removePosition][1]) + branchMutations[removePosition][3] + "," + branchMutations[removePosition][0] + str(branchMutations[removePosition][2]) + branchMutations[removePosition][3] + "," + clade.name + ",Double_substitution\n")
-                        #Remove the positions from the mutations
-                        for ele in sorted(uniquePositionsToRemove, reverse = True):
-                            del branchMutations[ele]
+                #Extract double substitutions, remove mutations at the ends of the genome or not involving 2 nucleotides
+                branchMutations, doubleSubstitutions = filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed)
                 
                 #Update the reference sequence to get the current context
                 updatedReference = updateReference(tree, clade, branchMutationDict, referenceSequence)
 
                 for mutation in branchMutations:
-                    #Check if the mutation is at the end of the genome, if it is it does not have context so cannt be analysed
-                    if (mutation[2] == 1) or (mutation[2] == referenceLength):
-                        outMutationsNotUsed.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + clade.name + ",End_of_genome\n")
-                    #Check if the mutation does not involve 2 nucleotides
-                    elif (mutation[0] not in nucleotides) or (mutation[3] not in nucleotides):
-                        outMutationsNotUsed.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + clade.name + ",Mutation_does_not_involve_two_nucleotides\n")
-                    else:
-                        mutationContext = getContext(mutation, updatedReference)
+                    mutationContext = getContext(mutation, updatedReference)
                     
-                        #Check if the upstream or downstream nucleotides are not A, C, G or T
-                        if (mutationContext[0] not in nucleotides) or (mutationContext[1] not in nucleotides):
-                            outMutationsNotUsed.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + clade.name + ",Surrounding_position_not_nucleotide\n")
+                    #Check if the upstream or downstream nucleotides are not A, C, G or T
+                    if (mutationContext[0] not in nucleotides) or (mutationContext[1] not in nucleotides):
+                        outMutationsNotUsed.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + clade.name + ",Surrounding_position_not_nucleotide\n")
+                    else:
+                        #This will be true for all RNA mutations and half of DNA mutations
+                        if (mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]) in spectraDict[branchCategory]:
+                            spectraDict[branchCategory][mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]] += 1
+                            outAllMutations.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + mutationContext[0] + "[" + mutation[0] + ">" + mutation[3] + "]" + mutationContext[1] + "," + clade.name + "\n")
+                        #Add to the corresponding complement
                         else:
-                            #This will be true for all RNA mutations and half of DNA mutations
-                            if (mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]) in spectraDict[branchCategory]:
-                                spectraDict[branchCategory][mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]] += 1
-                                outAllMutations.write(mutation[0] + str(mutation[1]) + mutation[3] + "," + mutation[0] + str(mutation[2]) + mutation[3] + "," + mutationContext[0] + "[" + mutation[0] + ">" + mutation[3] + "]" + mutationContext[1] + "," + clade.name + "\n")
-                            #Add to the corresponding complement
-                            else:
-                                spectraDict[branchCategory][complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
-                                outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + complement(mutationContext[1]) + "[" + complement(mutation[0]) + ">" + complement(mutation[3]) + "]" + complement(mutationContext[0]) + "," + clade.name + "\n")
+                            spectraDict[branchCategory][complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
+                            outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + complement(mutationContext[1]) + "[" + complement(mutation[0]) + ">" + complement(mutation[3]) + "]" + complement(mutationContext[0]) + "," + clade.name + "\n")
     
     #Write the spectra to separate files
     for eachLabel in spectraDict:
