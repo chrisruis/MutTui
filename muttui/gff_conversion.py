@@ -40,12 +40,19 @@ def convertGFF(gff_file_name):
                                 keep_order = True,
                                 from_string = True)
     
-    geneList = []
+    geneCoordinates = dict()
+    geneDict = dict()
     
     for entry in parsed_gff.all_features(featuretype = ()):
         if "CDS" not in entry.featuretype:
             continue
         else:
-            geneList.append([entry.id, entry.start, entry.stop, entry.strand])
-    
-    return(geneList)
+            geneCoordinates[entry.id] = [entry.start, entry.stop, entry.strand]
+            for position in range(entry.start, (entry.stop + 1)):
+                #If the position is in overlapping genes, all genes will be included separated by ____
+                if position in geneDict:
+                    geneDict[position] = geneDict[position] + "____" + entry.id
+                else:
+                    geneDict[position] = entry.id
+
+    return(geneCoordinates, geneDict)

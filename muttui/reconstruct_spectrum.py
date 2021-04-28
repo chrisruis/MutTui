@@ -2,10 +2,44 @@
 
 import argparse
 from Bio import AlignIO, Phylo
+from Bio.Seq import Seq
 from collections import OrderedDict
 import operator
+import numpy as np
 import array
 from treetime import *
+
+translation_table = np.array([[[b'K', b'N', b'K', b'N', b'X'],
+                               [b'T', b'T', b'T', b'T', b'T'],
+                               [b'R', b'S', b'R', b'S', b'X'],
+                               [b'I', b'I', b'M', b'I', b'X'],
+                               [b'X', b'X', b'X', b'X', b'X']],
+                              [[b'Q', b'H', b'Q', b'H', b'X'],
+                               [b'P', b'P', b'P', b'P', b'P'],
+                               [b'R', b'R', b'R', b'R', b'R'],
+                               [b'L', b'L', b'L', b'L', b'L'],
+                               [b'X', b'X', b'X', b'X', b'X']],
+                              [[b'E', b'D', b'E', b'D', b'X'],
+                               [b'A', b'A', b'A', b'A', b'A'],
+                               [b'G', b'G', b'G', b'G', b'G'],
+                               [b'V', b'V', b'V', b'V', b'V'],
+                               [b'X', b'X', b'X', b'X', b'X']],
+                              [[b'*', b'Y', b'*', b'Y', b'X'],
+                               [b'S', b'S', b'S', b'S', b'S'],
+                               [b'*', b'C', b'W', b'C', b'X'],
+                               [b'L', b'F', b'L', b'F', b'X'],
+                               [b'X', b'X', b'X', b'X', b'X']],
+                              [[b'X', b'X', b'X', b'X', b'X'],
+                               [b'X', b'X', b'X', b'X', b'X'],
+                               [b'X', b'X', b'X', b'X', b'X'],
+                               [b'X', b'X', b'X', b'X', b'X'],
+                               [b'X', b'X', b'X', b'X', b'X']]])
+
+reduce_array = np.full(200, 4)
+reduce_array[[65, 97]] = 0
+reduce_array[[67, 99]] = 1
+reduce_array[[71, 103]] = 2
+reduce_array[[84, 116]] = 3
 
 #Converts the positional translation to a dictionary with alignment positions as keys and genome positions as values
 def convertTranslation(positionsFile):
@@ -251,6 +285,85 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
             del branchMutations[ele]
     
     return(branchMutations, uniqueDoubleSubstitutions)
+
+#Translates a given nucleotide sequence to protein
+def translateSequence(sequence, strand):
+    if strand == "+":
+        return(Seq("".join(sequence)).translate())
+    else:
+        return(Seq("".join(sequence)).reverse_complement().translate())
+
+#Identifies the amino acid position of a nucleotide within a gene
+#If the gene is on the positive strand, this is the nucleotide position divided by 3, rounded up
+#If the gene is on the negative strand, this is the nucleotide position from the end of the gene divided by 3, rounded up
+def extractPosition(geneCoordinates, positionInGene):
+    if geneCoordinates[2] == "+":
+        return(int(positionInGene/3) + (positionInGene % 3 > 0))
+    else:
+        reversePosition = geneCoordinates[1] - (geneCoordinates[0] + positionInGene) + 1
+        return(int(reversePosition/3) + (reversePosition % 3 > 0))
+
+#Extracts synonymous mutations along a given branch
+#Used when --synonymous is specified
+def extractSynonymous(branchMutations, updatedReference, geneCoordinates, positionGene):
+    #Gene sequences at the upstream node
+    upstreamGenes = dict()
+    #Gene sequences containing mutations along the branch
+    downstreamGenes = dict()
+
+    positionsToRemove = []
+
+    #Iterate through the mutations to create dictionaries of each gene that mutates along the branch
+    #with their nucleotide sequences pre and post mutations
+    for mutation in branchMutations:
+        #Check if the mutation is in a gene, if the position isn't in positionGene, the position is intergenic
+        if mutation[2] not in positionGene:
+            continue
+        #Iterate through the genes the position is in, check if they are already present, mutate if so, if not
+        #add to dictionaries and mutate
+        for geneName in positionGene[mutation[2]].split("____"):
+            #Position of the mutation in the gene, zero based
+            positionInGene = mutation[2] - geneCoordinates[geneName][0]
+            if geneName in downstreamGenes:
+                downstreamGenes[geneName][positionInGene] = mutation[3]
+            else:
+                upstreamGenes[geneName] = array.array("u", updatedReference[(geneCoordinates[geneName][0] - 1):geneCoordinates[geneName][1]])
+                downstreamGenes[geneName] = array.array("u", updatedReference[(geneCoordinates[geneName][0] - 1):geneCoordinates[geneName][1]])
+                #Mutate the position in the downstream gene
+                downstreamGenes[geneName][positionInGene] = mutation[3]
+    
+    #Iterate through the mutations again, check if the translated position of the mutation changes along the branch
+    #Second iteration needed because 1st and 3rd codon positions may both change along a branch
+    for i, mutation in enumerate(branchMutations):
+        #Check if the mutation is in a gene, if the position isn't in positionGene, the position is intergenic
+        if mutation[2] not in positionGene:
+            continue
+        #Will change to False if the amino acid of the mutation has changed in any gene it is present in
+        synonymous = True
+        #Iterate through the genes the position is in, check if the position's amino acid changes, if so change synonymous to False
+        for geneName in positionGene[mutation[2]].split("____"):
+            #Position of the mutation in the gene, zero based
+            positionInGene = mutation[2] - geneCoordinates[geneName][0]
+            upstreamAA = translateSequence(upstreamGenes[geneName], geneCoordinates[geneName][2])
+            downstreamAA = translateSequence(downstreamGenes[geneName], geneCoordinates[geneName][2])
+            aaPosition = extractPosition(geneCoordinates[geneName], positionInGene) - 1
+
+            if upstreamAA[aaPosition] != downstreamAA[aaPosition]:
+                synonymous = False
+        
+        #If the mutation is nonsynonymous within any gene, remove it
+        if synonymous == False:
+            positionsToRemove.append(i)
+    
+    #Remove the positions that will not be included in the spectrum
+    if len(positionsToRemove) != 0:
+        #Identify the unique set of positions
+        uniquePositionsToRemove = list(set(positionsToRemove))
+        #Remove the positions from the mutations
+        for ele in sorted(uniquePositionsToRemove, reverse = True):
+            del branchMutations[ele]
+    
+    return(branchMutations)
 
 #Identifies the context of a mutation
 def getContext(mutation, updatedReference):

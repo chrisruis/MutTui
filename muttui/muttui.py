@@ -217,7 +217,7 @@ def main():
         if not args.gff:
             raise RuntimeError("GFF file needs to be provided with -g when using --strand_bias or --synonymous")
         else:
-            geneCoordinates = convertGFF(args.gff.name)
+            geneCoordinates, positionGene = convertGFF(args.gff.name)
 
     #Label branches in the tree into categories, each category will have a separate spectrum
     if args.labels:
@@ -294,6 +294,10 @@ def main():
                 
                 #Update the reference sequence to get the current context
                 updatedReference = updateReference(tree, clade, branchMutationDict, referenceSequence)
+
+                #Check if only synonymous mutations should be included, if so filter the mutations
+                if args.synonymous:
+                    branchMutations = extractSynonymous(branchMutations, updatedReference, geneCoordinates, positionGene)
 
                 for mutation in branchMutations:
                     mutationContext = getContext(mutation, updatedReference)
