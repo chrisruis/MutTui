@@ -7,6 +7,7 @@ import os
 import argparse
 from math import sqrt, log2
 import numpy as np
+from scipy import spatial
 from sklearn import manifold
 from matplotlib import pyplot as plt
 from plot_spectrum import convertSpectrumDict
@@ -29,14 +30,22 @@ def getColourDict(colourFile):
 
 #Calculates the distance between 2 given spectra
 def calculateSpectraDistance(spectrum1, spectrum2, method):
-    distance = float(0)
 
-    if method == "Bhattacharyya":
+    if method == "cosine":
+        s1 = list(spectrum1.values())
+        s2 = list(spectrum2.values())
+        distance = spatial.distance.cosine(s1, s2)
+    
+    elif method == "Bhattacharyya":
+        distance = float(0)
         for mutation in spectrum1:
             distance += sqrt(spectrum1[mutation] * spectrum2[mutation])
-        Bhattacharyya_distance = -log2(distance)
+        distance = -log2(distance)
     
-    return(Bhattacharyya_distance)
+    else:
+        raise RuntimeError("Distance method unknown: choose from cosine (default) or Bhattacharyya")
+    
+    return(distance)
 
 #Creates a matrix of zeros with number of rows and columns equal to the provided number of samples
 def getZerosMatrix(nSamples):
@@ -102,17 +111,24 @@ if __name__ == "__main__":
     parser.add_argument("-s",
                         "--spectra",
                         dest = "spectra",
-                        required = True,
                         nargs = "+",
                         help = "Spectrum files to be clustered. All files specified with -s will be clustered",
-                        type = argparse.FileType("r"))
+                        type = argparse.FileType("r"),
+                        default = False)
+    parser.add_argument("-c",
+                        "--catalog",
+                        dest = "catalog",
+                        help = "Multi-sample catalog containing spectra, samples as columns and mutation counts as rows",
+                        type = argparse.FileType("r"),
+                        default = False)
     parser.add_argument("-m",
                         "--method",
                         dest = "method",
-                        default = "Bhattacharyya",
+                        default = "cosine",
                         help = "The method used to calculate distances between pairs of spectra. " + 
-                        "Options are Bhattacharyya (default) and JS (Jensen-Shannon)")
-    parser.add_argument("-c",
+                        "Options are cosine similarity (specified with cosine), Bhattacharyya and JS (Jensen-Shannon). Cosine " +
+                        "similarity is default")
+    parser.add_argument("-l",
                         "--colours",
                         dest = "colour_file",
                         default = None,
@@ -130,6 +146,9 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
+    if not args.spectra and not args.catalog:
+        raise RuntimeError("Needs to be run on multiple individual mutational spectra provided with -s or a single multi-sample catalog provided with -c")
+
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
@@ -143,16 +162,29 @@ if __name__ == "__main__":
     #Calculate distances between all pairs of spectra
     distances = getDistanceMatrix(spectraList)
 
+    #Write cosine similarity if using cosine method
+    if args.method == "cosine":
+        similarity_out = open(args.output_dir + "cosine_similarity.csv", "w")
+        similarity_out.write("Sample")
+        for sample in args.spectra:
+            similarity_out.write("," + sample.name)
+        similarity_out.write("\n")
+        for row in range(len(distances)):
+            similarity_out.write(args.spectra[row].name)
+            for column in distances[row]:
+                similarity_out.write("," + str(1 - column))
+            similarity_out.write("\n")
+
     #Write distances
-    with open(args.output_dir + "sample_distances.txt", "w") as distances_out:
+    with open(args.output_dir + "sample_distances.csv", "w") as distances_out:
         distances_out.write("Sample")
         for sample in args.spectra:
-            distances_out.write("\t" + sample.name)
+            distances_out.write("," + sample.name)
         distances_out.write("\n")
         for row in range(len(distances)):
             distances_out.write(args.spectra[row].name)
             for column in distances[row]:
-                distances_out.write("\t" + str(column))
+                distances_out.write("," + str(column))
             distances_out.write("\n")
 
     plotMDS(distances, args.spectra, args.colour_file, args.output_dir)
