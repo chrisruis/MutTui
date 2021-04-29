@@ -13,6 +13,28 @@ from matplotlib import pyplot as plt
 from plot_spectrum import convertSpectrumDict
 from compare_spectra import convertSpectrumProportions
 
+#Converts a multi-sample catalog into a list of dictionaries
+def convertCatalog(catalogFile):
+    catalog = open(catalogFile.name).readlines()
+
+    sampleNames = catalog[0].strip().split(",")[1:]
+
+    totalMutations = [0] * len(sampleNames)
+
+    spectraList = [{} for i in range(len(sampleNames))]
+
+    #Calculate the number of mutations in each sample
+    for row in catalog[1:]:
+        for sample in range(len(sampleNames)):
+            totalMutations[sample] += int(row.strip().split(",")[sample + 1])
+    
+    #Calculate the proportion of each mutation in each sample
+    for row in catalog[1:]:
+        for sample in range(len(sampleNames)):
+            spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])/float(totalMutations[sample])
+    
+    return(spectraList, sampleNames)
+
 #Converts a given colouring file to a dictionary with files as keys and colours as distances
 def getColourDict(colourFile):
     if colourFile is None:
@@ -87,7 +109,7 @@ def plotMDS(distances, file_names, colourFile, output_dir):
     with open(output_dir + "mds_coordinates.txt", "w") as points_out:
         points_out.write("Sample\tx_coordinate\ty_coordinate\n")
         for i, coord in zip(file_names, coords):
-            points_out.write("%s\t%s\t%s\n" % (i.name, coord[0], coord[1]))
+            points_out.write("%s\t%s\t%s\n" % (i, coord[0], coord[1]))
     
     #Identify plot margins
     c_min = np.min(coords) - abs(np.quantile(coords, 0.05))
@@ -146,7 +168,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    if not args.spectra and not args.catalog:
+    if (not args.spectra and not args.catalog) or (args.spectra and args.catalog):
         raise RuntimeError("Needs to be run on multiple individual mutational spectra provided with -s or a single multi-sample catalog provided with -c")
 
     #Make sure trailing forward slash is present in output directory
@@ -155,9 +177,17 @@ if __name__ == "__main__":
     #List of spectra
     spectraList = []
 
-    #Extract the spectra into spectraList
-    for spectrum in args.spectra:
-        spectraList.append(convertSpectrumProportions(convertSpectrumDict(spectrum)))
+    #Names of spectra to be output
+    sampleNames = []
+
+    if args.spectra:
+        #Extract the spectra into spectraList
+        for spectrum in args.spectra:
+            sampleNames.append(spectrum.name)
+            spectraList.append(convertSpectrumProportions(convertSpectrumDict(spectrum)))
+    else:
+        #Extract the catalog into spectraList
+        spectraList, sampleNames = convertCatalog(args.catalog)
     
     #Calculate distances between all pairs of spectra
     distances = getDistanceMatrix(spectraList)
@@ -166,11 +196,11 @@ if __name__ == "__main__":
     if args.method == "cosine":
         similarity_out = open(args.output_dir + "cosine_similarity.csv", "w")
         similarity_out.write("Sample")
-        for sample in args.spectra:
-            similarity_out.write("," + sample.name)
+        for sample in sampleNames:
+            similarity_out.write("," + sample)
         similarity_out.write("\n")
         for row in range(len(distances)):
-            similarity_out.write(args.spectra[row].name)
+            similarity_out.write(sampleNames[row])
             for column in distances[row]:
                 similarity_out.write("," + str(1 - column))
             similarity_out.write("\n")
@@ -178,13 +208,13 @@ if __name__ == "__main__":
     #Write distances
     with open(args.output_dir + "sample_distances.csv", "w") as distances_out:
         distances_out.write("Sample")
-        for sample in args.spectra:
-            distances_out.write("," + sample.name)
+        for sample in sampleNames:
+            distances_out.write("," + sample)
         distances_out.write("\n")
         for row in range(len(distances)):
-            distances_out.write(args.spectra[row].name)
+            distances_out.write(sampleNames[row])
             for column in distances[row]:
                 distances_out.write("," + str(column))
             distances_out.write("\n")
 
-    plotMDS(distances, args.spectra, args.colour_file, args.output_dir)
+    plotMDS(distances, sampleNames, args.colour_file, args.output_dir)
