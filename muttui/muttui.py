@@ -94,6 +94,13 @@ def get_options():
                         "used if option --start_from_treetime is specified, in which case the output files in this directory will " + 
                         "be used to calculate the mutational spectrum",
                         default = None)
+    io_opts.add_argument("-bm",
+                        "--branch_mutations",
+                        dest = "branch_mutations",
+                        help = "The minimum number of mutations on a branch to calculate its mutational spectrum. Only used when " + 
+                        "specifying --branch_specific which will output the spectrum for each branch with more than this number of " + 
+                        "mutations separately. Default = 50",
+                        default = "50")
     
     #Options to include in treetime reconstruction
     treetime = parser.add_argument_group("treetime command")
@@ -156,6 +163,12 @@ def get_options():
                         dest = "synonymous",
                         help = "Use non-coding and synonymous mutations only to calculate the mutational spectrum. A GFF file will need to be " + 
                         "provided with option -g which will be used to identify genes",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("--branch_specific",
+                        dest = "branch_specific",
+                        help = "Calculate the mutational spectrum for each branch in the tree separately. Only branches containing at least " + 
+                        "the number of mutations specified with -bm will be included",
                         action = "store_true",
                         default = False)
     parser.add_argument("--version",
@@ -342,6 +355,22 @@ def main():
         outMTSpectrum = open(args.output_dir + "mutation_types_label_" + eachLabel + ".pdf", "w")
         plotMutationType(mtCounts, outMTSpectrum)
         outMTSpectrum.close()
+    
+    #Write the spectra to a combined catalog if there is more than 1 label
+    if len(spectraDict.keys()) > 1:
+        outCombined = open(args.output_dir + "combined_catalog.csv", "w")
+        outCombined.write("Substitution")
+        for eachLabel in spectraDict:
+            outCombined.write("," + eachLabel)
+        outCombined.write("\n")
+
+        for eachMutation in spectraDict[list(spectraDict.keys())[0]]:
+            outCombined.write(eachMutation)
+            for eachLabel in spectraDict:
+                outCombined.write("," + str(spectraDict[eachLabel][eachMutation]))
+            outCombined.write("\n")
+
+        outCombined.close()
 
     #Close output files
     outMutationsNotUsed.close()
