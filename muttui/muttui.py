@@ -184,6 +184,13 @@ def main():
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
+    #If --branch_specific is used, set --include_all_branches to true
+    if args.branch_specific:
+        args.include_all_branches = True
+    
+    #Minimum mutations to include a branch, only used with --branch_specific
+    minimumMutations = int(args.branch_mutations)
+
     #Open output files
     outMutationsNotUsed = open(args.output_dir + "mutations_not_included.csv", "w")
     outMutationsNotUsed.write("Mutation_in_alignment,Mutation_in_genome,Branch,Reason_not_included\n")
@@ -254,8 +261,13 @@ def main():
         mugrationTree = rootState(mugrationTree, confidence, gtr, args.root_state)
 
         labelledTree, treeLabels = labelBranchesMugration(tree, mugrationTree)
+    #Label branches from the provided tree
     elif args.labelled_tree:
         labelledTree, treeLabels = getLabelledTreeLabels(tree, args.labelled_tree)
+    #Label branches with their branch name
+    elif args.branch_specific:
+        labelledTree, treeLabels = labelBranchesNames(tree)
+    #Label all branches with the same label
     else:
         labelledTree, treeLabels = labelAllBranches(tree)
     
@@ -298,6 +310,17 @@ def main():
 
             #Extract the mutations along the branch. This will be None if there are no mutations but treetime has still added the mutation comment
             branchMutations = branchMutationDict[clade.name]
+
+            #If using --branch_specific, check if the branch contains at least -bm mutations, if so
+            #add the branch to spectraDict. If not, set branchCategory to None so it won't be analysed
+            if args.branch_specific:
+                if len(branchMutations) >= minimumMutations:
+                    if args.rna:
+                        spectraDict[clade.name] = getRNADict()
+                    else:
+                        spectraDict[clade.name] = getMutationDict()
+                else:
+                    branchCategory = None
 
             #Check if the branch has a category, will be None if the branch is a transition between categories
             #and option --include_all_branches is not specified

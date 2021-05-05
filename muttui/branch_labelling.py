@@ -148,6 +148,17 @@ def getLabelledTreeLabels(tree, treeFile):
     
     return(tree, treeLabels)
 
+#Label all branches in the tree with their branch name
+def labelBranchesNames(tree):
+    #Will contain the labels in the tree
+    treeLabels = []
+
+    #Iterate through the branches and add the label A to them
+    for clade in tree.find_clades():
+        clade.clade_label = clade.name
+    
+    return(tree, treeLabels)
+
 #Iterates through the tree and labels each branch with its category
 #Branches with the same category will be placed in the same spectrum, there will be one spectrum per category
 def labelBranchesMugration(tree, mugrationTree):
