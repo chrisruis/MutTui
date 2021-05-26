@@ -326,16 +326,19 @@ def main():
             #and option --include_all_branches is not specified
             if branchCategory is not None:
                 #Extract double substitutions, remove mutations at the ends of the genome or not involving 2 nucleotides
-                branchMutations, doubleSubstitutions = filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed)
+                double_substitution_dict, doubleSubstitutions = filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed)
                 
                 #Update the reference sequence to get the current context
                 updatedReference = updateReference(tree, clade, branchMutationDict, referenceSequence)
 
                 #Check if only synonymous mutations should be included, if so filter the mutations
                 if args.synonymous:
-                    branchMutations = extractSynonymous(branchMutations, updatedReference, geneCoordinates, positionGene)
-                
+                    synonymous_substitution_dict = extractSynonymous(clade, branchMutations, updatedReference, referenceSequence, geneCoordinates, positionGene, args.output_dir)
                 for mutation in branchMutations:
+                    if args.synonymous and mutation[2] in synonymous_substitution_dict:
+                        continue
+                    if double_substitution_dict and mutation[2] in double_substitution_dict:
+                        continue
                     mutationContext = getContext(mutation, updatedReference)
                     
                     #Check if the upstream or downstream nucleotides are not A, C, G or T

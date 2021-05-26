@@ -276,15 +276,15 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
         outMutationsNotUsed.write(uds[0] + str(uds[1]) + uds[3] + "," + uds[0] + str(uds[2]) + uds[3] + "," + clade.name + ",Double_substitution\n")
     
     #Remove the positions that will not be included in the spectrum
+    double_substitution_dict = {}
     if len(positionsToRemove) != 0:
         #Identify the unique set of positions, if there are 3 or more consecutive positions to be removed,
         #at least one of these positions will be in positionsToRemove more than once
         uniquePositionsToRemove = list(set(positionsToRemove))
-        #Remove the positions from the mutations
+        #Flag double substitutions
         for ele in sorted(uniquePositionsToRemove, reverse = True):
-            del branchMutations[ele]
-    
-    return(branchMutations, uniqueDoubleSubstitutions)
+            double_substitution_dict[ele] = True 
+    return(double_substitution_dict, uniqueDoubleSubstitutions)
 
 #Translates a given nucleotide sequence to protein
 def translateSequence(sequence, strand):
@@ -355,15 +355,16 @@ def extractSynonymous(branchMutations, updatedReference, geneCoordinates, positi
         if synonymous == False:
             positionsToRemove.append(i)
     
-    #Remove the positions that will not be included in the spectrum
+    #Flag the positions that will not be included in the spectrum 
+    synonymous_substitution_dict = {}
     if len(positionsToRemove) != 0:
         #Identify the unique set of positions
         uniquePositionsToRemove = list(set(positionsToRemove))
-        #Remove the positions from the mutations
+        #Flag synonymous substitutions
         for ele in sorted(uniquePositionsToRemove, reverse = True):
-            del branchMutations[ele]
+            synonymous_substitution_dict[ele] = False 
     
-    return(branchMutations)
+    return(synonymous_substitution_dict)
 
 #Identifies the context of a mutation
 def getContext(mutation, updatedReference):
