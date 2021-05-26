@@ -289,19 +289,19 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
 #Translates a given nucleotide sequence to protein
 def translateSequence(sequence, strand):
     if strand == "+":
-        return(Seq("".join(sequence)).translate())
+        return(Seq("".join(sequence)).translate(cds = check_cds, table = 11))
     else:
-        return(Seq("".join(sequence)).reverse_complement().translate())
+        return(Seq("".join(sequence)).reverse_complement().translate(cds = check_cds, table = 11))
 
 #Identifies the amino acid position of a nucleotide within a gene
 #If the gene is on the positive strand, this is the nucleotide position divided by 3, rounded up
 #If the gene is on the negative strand, this is the nucleotide position from the end of the gene divided by 3, rounded up
 def extractPosition(geneCoordinates, positionInGene):
     if geneCoordinates[2] == "+":
-        return(int(positionInGene/3) + (positionInGene % 3 > 0))
+        return((positionInGene + 1)//3 + ((positionInGene + 1) % 3 != 0)) 
     else:
-        reversePosition = geneCoordinates[1] - (geneCoordinates[0] + positionInGene) + 1
-        return(int(reversePosition/3) + (reversePosition % 3 > 0))
+        reversePosition = geneCoordinates[1] - (geneCoordinates[0] + positionInGene)
+        return((reversePosition + 1)//3 + ((reversePosition + 1) % 3 != 0))
 
 #Extracts synonymous mutations along a given branch
 #Used when --synonymous is specified
