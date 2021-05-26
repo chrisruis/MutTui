@@ -228,7 +228,7 @@ def main():
     tree = Phylo.read(args.tree.name, "newick")
     #Ladderize the tree so the branches are in the same order as the treetime tree
     tree.ladderize()
-    tree = labelBranchesTreetime(tree)
+    #tree = labelBranchesTreetime(tree)
 
     print("Alignment and tree imported. Reconstructing spectrum")
 
