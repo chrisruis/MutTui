@@ -270,7 +270,6 @@ def main():
     #Label all branches with the same label
     else:
         labelledTree, treeLabels = labelAllBranches(tree)
-    
     #Branch categories as keys, spectra as values
     spectraDict = {}
     #Create empty spectrum for each branch category
@@ -302,6 +301,10 @@ def main():
     referenceLength = len(referenceSequence)
     
     #Iterate through the branches, get the category of the branch, identify the contextual mutations, add to the corresponding spectrum
+    if args.synonymous:
+        effects = open(args.output_dir + "variant_effect_predictions.txt", "w")
+        effects.write("\t".join(["node", "pos", "upstream_allele", "downstream_allele", "upstream_aa", "downstream_aa", "reference_aa", "upstream_codon", "downstream_codon", "reference_codon", "impact", "aa_change",  "multi_codon_substitution", "locus_tag", "pseudogene"]) + "\n")
+        effects.close()
     for clade in labelledTree.find_clades():
         #Check if there are mutations along the current branch, only need to analyse branches with mutations
         if clade.name in branchMutationDict:

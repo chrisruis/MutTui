@@ -1,6 +1,7 @@
 #Takes the alignment and tree output by treetime and reconstructs the mutational spectrum
 
 import argparse
+from Bio import SeqUtils
 from Bio import AlignIO, Phylo
 from Bio.Seq import Seq
 from collections import OrderedDict
@@ -287,7 +288,7 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
     return(double_substitution_dict, uniqueDoubleSubstitutions)
 
 #Translates a given nucleotide sequence to protein
-def translateSequence(sequence, strand):
+def translateSequence(sequence, strand, check_cds = False):
     if strand == "+":
         return(Seq("".join(sequence)).translate(cds = check_cds, table = 11))
     else:
@@ -305,13 +306,18 @@ def extractPosition(geneCoordinates, positionInGene):
 
 #Extracts synonymous mutations along a given branch
 #Used when --synonymous is specified
-def extractSynonymous(branchMutations, updatedReference, geneCoordinates, positionGene):
+def extractSynonymous(clade, branchMutations, updatedReference, referenceSequence, geneCoordinates, positionGene, output_dir):
     #Gene sequences at the upstream node
     upstreamGenes = dict()
     #Gene sequences containing mutations along the branch
     downstreamGenes = dict()
+    referenceGenes = dict()
 
     positionsToRemove = []
+    
+    #open file for writing effect predictions to disk
+    effects = open(output_dir + "variant_effect_predictions.txt", "a")
+
 
     #Iterate through the mutations to create dictionaries of each gene that mutates along the branch
     #with their nucleotide sequences pre and post mutations
@@ -328,32 +334,123 @@ def extractSynonymous(branchMutations, updatedReference, geneCoordinates, positi
                 downstreamGenes[geneName][positionInGene] = mutation[3]
             else:
                 upstreamGenes[geneName] = array.array("u", updatedReference[(geneCoordinates[geneName][0] - 1):geneCoordinates[geneName][1]])
-                downstreamGenes[geneName] = array.array("u", updatedReference[(geneCoordinates[geneName][0] - 1):geneCoordinates[geneName][1]])
-                #Mutate the position in the downstream gene
+                referenceGenes[geneName] = array.array("u", referenceSequence[(geneCoordinates[geneName][0] - 1):geneCoordinates[geneName][1]])
+                downstreamGenes[geneName] = array.array("u", updatedReference[(geneCoordinates[geneName][0] - 1):geneCoordinates[geneName][1]]) #Mutate the position in the downstream gene downstreamGenes[geneName][positionInGene] = mutation[3]
                 downstreamGenes[geneName][positionInGene] = mutation[3]
     
-    #Iterate through the mutations again, check if the translated position of the mutation changes along the branch
+    #Iterate through the mutations , check if the translated position of the mutation changes along the branch
     #Second iteration needed because 1st and 3rd codon positions may both change along a branch
+    #dictionary aa position vs change
+    aa_pos2effect = {}
     for i, mutation in enumerate(branchMutations):
+        #initialise fields for effect prediction
+        upstream_aa, downstream_aa, reference_aa, upstream_codon, downstream_codon, reference_codon, impact, aa_change, multi_codon_substitution, locus_tag, pseudogene = ["" for i in range(11)]
+        node = str(clade)
+        pos = str(mutation[2])
+        upstream_allele = mutation[0]
+        downstream_allele = mutation[3]
         #Check if the mutation is in a gene, if the position isn't in positionGene, the position is intergenic
         if mutation[2] not in positionGene:
-            continue
-        #Will change to False if the amino acid of the mutation has changed in any gene it is present in
-        synonymous = True
-        #Iterate through the genes the position is in, check if the position's amino acid changes, if so change synonymous to False
-        for geneName in positionGene[mutation[2]].split("____"):
-            #Position of the mutation in the gene, zero based
-            positionInGene = mutation[2] - geneCoordinates[geneName][0]
-            upstreamAA = translateSequence(upstreamGenes[geneName], geneCoordinates[geneName][2])
-            downstreamAA = translateSequence(downstreamGenes[geneName], geneCoordinates[geneName][2])
-            aaPosition = extractPosition(geneCoordinates[geneName], positionInGene) - 1
-
-            if upstreamAA[aaPosition] != downstreamAA[aaPosition]:
-                synonymous = False
-        
-        #If the mutation is nonsynonymous within any gene, remove it
-        if synonymous == False:
-            positionsToRemove.append(i)
+            impact = "MODIFIER"
+            #write out effect TODO determine proximity to coding features nearby
+            aa_pos2effect[pos]= [node, pos, upstream_allele, downstream_allele, upstream_aa, downstream_aa, reference_aa, str(downstream_codon), str(upstream_codon), str(reference_codon), impact, aa_change, multi_codon_substitution, locus_tag, pseudogene]
+        else:
+            #Will change to False if the amino acid of the mutation has changed in any gene it is present in
+            synonymous = True
+            #Iterate through the genes the position is in, check if the position's amino acid changes, if so change synonymous to False
+            for geneName in positionGene[mutation[2]].split("____"):
+                #Position of the mutation in the gene, zero based
+                locus_tag = geneCoordinates[geneName][3]
+                aa_change = ""
+                #determine if this is a proper CDS otherwise set pseudogene flag 
+                #TODO selenocysteine stop codon 
+                try:
+                    translateSequence(upstreamGenes[geneName], geneCoordinates[geneName][2], check_cds = True)
+                except Exception as err:
+                    pseudogene = "pseudogene"
+                #translate without the check cds flag
+                upstreamAAs = translateSequence(upstreamGenes[geneName], geneCoordinates[geneName][2])
+                referenceAAs = translateSequence(referenceGenes[geneName], geneCoordinates[geneName][2])
+                downstreamAAs = translateSequence(downstreamGenes[geneName], geneCoordinates[geneName][2])
+                #position in gene depending on what strand the cds is on
+                positionInGene = mutation[2] - geneCoordinates[geneName][0]
+                aaPosition = extractPosition(geneCoordinates[geneName], positionInGene) - 1
+                #extract codon 
+                #transcribe gene
+                if geneCoordinates[geneName][2] == "+":
+                    rc_ds = Seq("".join(downstreamGenes[geneName]))
+                    rc_us = Seq("".join(upstreamGenes[geneName]))
+                    rc_rs = Seq("".join(referenceGenes[geneName]))
+                else:
+                    #reverse complement
+                    rc_ds = Seq("".join(downstreamGenes[geneName])).reverse_complement()
+                    rc_us = Seq("".join(upstreamGenes[geneName])).reverse_complement()
+                    rc_rs = Seq("".join(referenceGenes[geneName])).reverse_complement()
+                reference_codon = rc_rs[(aaPosition * 3): (aaPosition * 3 + 3)]
+                upstream_codon = rc_us[(aaPosition * 3): (aaPosition * 3 + 3)]
+                downstream_codon = rc_ds[(aaPosition * 3): (aaPosition * 3 + 3)]
+                #amino acid at substitution position
+                reference_aa = referenceAAs[aaPosition]
+                downstream_aa = downstreamAAs[aaPosition]
+                upstream_aa = upstreamAAs[aaPosition]
+                #check for start codon substitution, as we're using check_cds = False, non ATG codons are translated into non methionine amino acids
+                if aaPosition == 0:
+                    if upstream_codon == "GTG" or upstream_codon == "TTG":
+                        upstream_aa = "M"
+                    if downstream_codon == "GTG" or downstream_codon == "TTG":
+                        downstream_aa = "M"
+                    if reference_codon == "GTG" or reference_codon == "TTG":
+                        reference_aa = "M"
+                #check if amino acid changed due to the current substitution
+                if upstream_aa != downstream_aa:
+                    #stop codon -> different codon
+                    if upstream_aa == "*":
+                        downstream_aa3 = SeqUtils.IUPACData.protein_letters_1to3[downstream_aa]
+                        upstream_aa3 = "*"
+                        upstream_aa = "*"
+                        impact = "HIGH"
+                    #stop codon inserted
+                    elif downstream_aa == "*":
+                        upstream_aa3 = SeqUtils.IUPACData.protein_letters_1to3[upstream_aa]
+                        downstream_aa3 = "*"
+                        downstream_aa = "*"
+                        impact = "HIGH"
+                    else:
+                        #start codon -> different codon
+                        if aaPosition == 0 and upstream_aa == "M" and downstream_aa != "M":
+                            impact = "HIGH"
+                        #regular non-synonymous SNP
+                        else:
+                            impact = "MODERATE"
+                        downstream_aa3 = SeqUtils.IUPACData.protein_letters_1to3[downstream_aa]
+                        upstream_aa3 = SeqUtils.IUPACData.protein_letters_1to3[upstream_aa]
+                        aa_change = "p.%s%s%s" % (upstream_aa3, aaPosition + 1, downstream_aa3)
+                    synonymous = False
+                #synonymous SNP
+                else:
+                    impact = "LOW"
+                #account for codons mutated at different positions on the same branch
+                dict_key = "%s_%s_%s" % (clade, locus_tag, aaPosition + 1)
+                if dict_key in aa_pos2effect:
+                    multi_codon_substitution = "multi_codon_substitution"
+                    #correct position to beginning of the codon
+                    if geneCoordinates[geneName][2] == "+":
+                        pos = str(int(pos) - (positionInGene  % 3))
+                        upstream_allele = upstream_codon
+                        downstream_allele = downstream_codon
+                    else:
+                        pos = str(geneCoordinates[geneName][1] - aaPosition * 3 - 2)
+                        upstream_allele = upstream_codon.reverse_complement()
+                        downstream_allele = downstream_codon.reverse_complement()
+                    aa_pos2effect[dict_key] = [node, pos, str(upstream_allele), str(downstream_allele), upstream_aa, downstream_aa, reference_aa, str(upstream_codon), str(downstream_codon),  str(reference_codon), impact, aa_change, multi_codon_substitution, locus_tag, pseudogene]
+                else:
+                    aa_pos2effect[dict_key] = [node, pos, upstream_allele, downstream_allele, upstream_aa, downstream_aa, reference_aa, str(upstream_codon), str(downstream_codon), str(reference_codon), impact, aa_change, multi_codon_substitution, locus_tag, pseudogene]
+                #If the mutation is nonsynonymous within any gene, remove it
+                if synonymous == False:
+                    positionsToRemove.append(i)
+    #write effects to effect prediction out file
+    for substitution in aa_pos2effect.values():
+        effects.write("\t".join(substitution) + "\n")
     
     #Flag the positions that will not be included in the spectrum 
     synonymous_substitution_dict = {}

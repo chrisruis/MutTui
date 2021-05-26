@@ -47,7 +47,8 @@ def convertGFF(gff_file_name):
         if "CDS" not in entry.featuretype:
             continue
         else:
-            geneCoordinates[entry.id] = [entry.start, entry.stop, entry.strand]
+            #add stop codon to coordinates
+            geneCoordinates[entry.id] = [entry.start, entry.stop, entry.strand, entry.attributes['locus'][0]]
             for position in range(entry.start, (entry.stop + 1)):
                 #If the position is in overlapping genes, all genes will be included separated by ____
                 if position in geneDict:
