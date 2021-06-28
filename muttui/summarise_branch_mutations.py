@@ -147,21 +147,21 @@ if __name__ == "__main__":
 
     #Iterate through the mutations and add to bM and bMT
     with open(args.mutations.name) as fileobject:
+        next(fileobject)
         for line in fileobject:
 
-            if line.strip().split(",")[0] != "Mutation_in_alignment":
-                m = line.strip().split(",")[2].split("[")[1].split("]")[0]
-                b = line.strip().split(",")[3].split("->")[1]
+            m = line.strip().split(",")[2].split("[")[1].split("]")[0]
+            b = line.strip().split(",")[3]
 
-                if b in bM:
-                    bM[b] += 1
-                else:
-                    bM[b] = 1
+            if b in bM:
+                bM[b] += 1
+            else:
+                bM[b] = 1
                 
-                if (b + ":" + m) in bMT:
-                    bMT[b + ":" + m] += 1
-                else:
-                    bMT[b + ":" + m] = 1
+            if (b + ":" + m) in bMT:
+                bMT[b + ":" + m] += 1
+            else:
+                bMT[b + ":" + m] = 1
     
     #Write the mutations on each branch
     for branch in bM:
