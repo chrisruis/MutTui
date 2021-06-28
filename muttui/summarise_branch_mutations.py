@@ -22,8 +22,10 @@ def convertTreeMutations(tree, bM, bMT):
             
             if clade.is_terminal():
                 clade.name = clade.name + "[&"
+            elif clade.confidence:
+                clade.name = "[&label=" + clade.confidence
             else:
-                clade.name = "[&"
+                clade.name = "[&label=" + clade.name
             
             #Label the branch with the total number of mutations and mutations of each type
             if cladeName in bM:
@@ -72,7 +74,7 @@ def convertTreeMutations(tree, bM, bMT):
                     TG = float(0)
                     P_TG = float(0)
                 
-                clade.name += "total_mutations=" + str(totalM)
+                clade.name += ",total_mutations=" + str(totalM)
                 clade.name += ",C_A=" + str(CA) 
                 clade.name += ",C_G=" + str(CG)
                 clade.name += ",C_T=" + str(CT)
@@ -88,7 +90,7 @@ def convertTreeMutations(tree, bM, bMT):
             
             #If the clade has no mutations, all of its mutations will be 0
             else:
-                clade.name += "total_mutations=0,C_A=0,C_G=0,C_T=0,T_A=0,T_C=0,T_G=0,P_C_A=0,P_C_G=0,P_C_T=0,P_T_A=0,P_T_C=0,P_T_G=0"
+                clade.name += ",total_mutations=0,C_A=0,C_G=0,C_T=0,T_A=0,T_C=0,T_G=0,P_C_A=0,P_C_G=0,P_C_T=0,P_T_A=0,P_T_C=0,P_T_G=0"
             
             clade.name += "]"
         
@@ -98,6 +100,15 @@ def convertTreeMutations(tree, bM, bMT):
         clade.confidence = None
         clade.comment = None
     
+    return(tree)
+
+#Convert node labels imported as confidence values to labels
+def labelNodeNames(tree):
+    for clade in tree.get_nonterminals():
+        if clade.confidence:
+            clade.label = clade.confidence
+        else:
+            clade.label = clade.name
     return(tree)
 
 #Converts tip names to a dictionary, used to write trees in BEAST format
@@ -197,7 +208,9 @@ if __name__ == "__main__":
                 bMT[str(tipDict[tip.name]) + ":" + mT] = bMT[tip.name + ":" + mT]
         tip.name = str(tipDict[tip.name])
 
-    #Label each branch with its mutation proportions and write
+    #Convert node labels from confidence to labels
+    #tree = labelNodeNames(tree)
+    #Label each branch with its mutation proportions
     labelledTree = convertTreeMutations(tree, bM, bMT)
     
     #Write the labelled tree
