@@ -259,7 +259,7 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
         #Check if the mutation does not involve 2 nucleotides
         elif (branchMutations[mutation1][0] not in nucleotides) or (branchMutations[mutation1][3] not in nucleotides):
             positionsToRemove.append(mutation1)
-            outMutationsNotUsed.write(branchMutations[mutation1][0] + str(branchMutations[mutation1][1]) + branchMutations[mutation1][3] + "," + branchMutations[mutation1][0] + str(branchMutations[mutation1][2]) + branchMutations[mutation1][3] + "," + clade.name + "Mutation_does_not_involve_two_nucleotides\n")
+            outMutationsNotUsed.write(branchMutations[mutation1][0] + str(branchMutations[mutation1][1]) + branchMutations[mutation1][3] + "," + branchMutations[mutation1][0] + str(branchMutations[mutation1][2]) + branchMutations[mutation1][3] + "," + clade.name + ",Mutation_does_not_involve_two_nucleotides\n")
     
     #If there is a tract of 3 or more substitutions at adjacent positions, some of the mutations
     #will be in doubleSubstitutions twice. Extract the unique double substitution positions
