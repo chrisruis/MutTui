@@ -1,5 +1,5 @@
 #Labels all branches in a given tree
-#Takes a specified root state and the branches and state changes where the label changes
+#Takes a specified root state with -r and the branches and state changes where the label changes with -s
 #Uses the node numbers from add_tree_node_labels.py to specify internal branches and the taxon IDs to specify tip branches
 
 import argparse

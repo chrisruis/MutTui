@@ -13,6 +13,32 @@ import sys
 from reconstruct_spectrum import getMutationDict, getContext, complement
 from plot_spectrum import convertSpectrumFormat, plotSpectrumFromDict
 
+#Extracts variants from a VCF file, returns a list of lists with
+#each list containing position, reference, variant
+def extractFromVCF(vf):
+    #Will change to True if it finds a line starting #CHROM, otherwise will raise an error and exit
+    fFormat = False
+
+    #Empty list to be filled
+    vL = list()
+
+    #Iterate through the VCF, check if the format is correct and if so iterate through variants
+    with open(vf.name) as fileobject:
+        for line in fileobject:
+            if line[:6] == "#CHROM":
+                fFormat = True
+
+                #Extract columns
+                for i, col in enumerate(line.strip().split("\t")):
+                    if col == "#CHROM":
+                        cCol = i
+                    elif col == "POS":
+                        pCol = i
+                    elif col == "REF":
+                        rCol = i
+                    elif col == "ALT":
+                        vCol = i
+
 #Extracts variants from a variant file, returns a list of lists with
 #each list containing position, reference, variant
 def extractFromVariantFile(vf):
@@ -58,6 +84,14 @@ if __name__ == "__main__":
                         "(containing the variant nucleotide at the position)",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--multi_contig",
+                        dest = "multi_contig",
+                        help = "Use this option if your samples are mapped against a multi-contig reference. " +
+                        "Without this option, a single continuous reference is assumed to be provided with -r. " + 
+                        "This option is currently only possible with a VCF input and the names in the VCF CHROM column " + 
+                        "must match those in the FASTA reference file exactly",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "-output_prefix",
                         dest = "out",
@@ -69,6 +103,9 @@ if __name__ == "__main__":
     #Extract variants from input file
     if args.variant:
         variants = extractFromVariantFile(args.v_file)
+    else:
+        extractFromVCF(args.v_file)
+    exit()
     
     #Import reference and extract to string
     reference = str(SeqIO.read(args.reference.name, "fasta").seq).upper()
