@@ -1,12 +1,17 @@
 #Calculates a mutational spectrum from variant input data
 #Can take VCF input or a file containing variants
+#The VCF file needs to contain a line above the variants with columns #CHROM, POS, REF and ALT
 #This variant file can be in any format as long as it has columns:
 #position - containing genome position of mutation
 #reference - reference base at position
 #variant - variant base at position
 #A VCF file is the default input, to use a variant file use --variant
+#A multi-fasta reference can be used by specifying option --multi_contig. In this case, all variant positions need
+#to be relative to their position in the corresponding contig. Contig names need to match between the VCF file
+#and the FASTA reference file
 
 import argparse
+from re import A
 import pandas as pd
 from Bio import SeqIO
 import sys
@@ -14,19 +19,21 @@ from reconstruct_spectrum import getMutationDict, getContext, complement
 from plot_spectrum import convertSpectrumFormat, plotSpectrumFromDict
 
 #Extracts variants from a VCF file, returns a list of lists with
-#each list containing position, reference, variant
+#each list containing chromosome, position, reference, variant
 def extractFromVCF(vf):
-    #Will change to True if it finds a line starting #CHROM, otherwise will raise an error and exit
-    fFormat = False
-
     #Empty list to be filled
     vL = list()
+
+    #Will be changed to column numbers if exist
+    cCol = None
+    pCol = None
+    rCol = None
+    vCol = None
 
     #Iterate through the VCF, check if the format is correct and if so iterate through variants
     with open(vf.name) as fileobject:
         for line in fileobject:
             if line[:6] == "#CHROM":
-                fFormat = True
 
                 #Extract columns
                 for i, col in enumerate(line.strip().split("\t")):
@@ -38,6 +45,17 @@ def extractFromVCF(vf):
                         rCol = i
                     elif col == "ALT":
                         vCol = i
+            
+            #Process variant lines
+            elif line[0] != "#":
+                #Check if all of the required columns are present, if not one or more will still be None
+                if None in (cCol, pCol, rCol, vCol):
+                    print("VCF file needs to contain CHROM, POS, REF and ALT on a line that starts with #CHROM to be processed")
+                    sys.exit()
+                
+                vL.append([line.strip().split("\t")[rCol], line.strip().split("\t")[vCol], int(line.strip().split("\t")[pCol]), line.strip().split("\t")[cCol]])
+    
+    return(vL)
 
 #Extracts variants from a variant file, returns a list of lists with
 #each list containing position, reference, variant
@@ -58,6 +76,21 @@ def extractFromVariantFile(vf):
         vL.append([variants["reference"][i], variants["variant"][i], variants["position"][i]])
     
     return(vL)
+
+#Extracts multiple contigs from a FASTA file into a dictionary with contig names as keys and
+#sequences as values
+def extractMultiContig(fFile):
+    sD = dict()
+
+    #Import each contig and add to sD
+    for contig in SeqIO.parse(fFile, "fasta"):
+        sD[contig.id] = str(contig.seq)
+    
+    return(sD)
+
+#Extracts mutation context from a multi-contig reference
+def getMultiContigContext(mutation, reference):
+    return(reference[mutation[3]][mutation[2] - 2], reference[mutation[3]][mutation[2]])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -104,11 +137,14 @@ if __name__ == "__main__":
     if args.variant:
         variants = extractFromVariantFile(args.v_file)
     else:
-        extractFromVCF(args.v_file)
-    exit()
+        variants = extractFromVCF(args.v_file)
     
-    #Import reference and extract to string
-    reference = str(SeqIO.read(args.reference.name, "fasta").seq).upper()
+    #Import multi-contig reference to a dictionary
+    if args.multi_contig:
+        reference = extractMultiContig(args.reference.name)
+    else:
+        #Import reference as single contig and extract to string
+        reference = str(SeqIO.read(args.reference.name, "fasta").seq).upper()
 
     outMutationsNotUsed = open(args.out + "_mutations_not_included.csv", "w")
     outMutationsNotUsed.write("Mutation_in_genome,Reason_not_included\n")
@@ -127,7 +163,10 @@ if __name__ == "__main__":
         if (mutation[0] not in nucleotides) or (mutation[1] not in nucleotides):
             outMutationsNotUsed.write(mutation[0] + str(mutation[2]) + mutation[1] + ",mutation_does_not_involve_2_nucleotides\n")
         else:
-            mutationContext = getContext(mutation, reference)
+            if args.multi_contig:
+                mutationContext = getMultiContigContext(mutation, reference)
+            else:
+                mutationContext = getContext(mutation, reference)
 
             #Check if the mutation, upstream or downstream nucleotides are not A, C, G or T
             if (mutationContext[0] not in nucleotides) or (mutationContext[1] not in nucleotides):
