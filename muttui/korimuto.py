@@ -162,6 +162,9 @@ if __name__ == "__main__":
     for mutation in variants:
         if (mutation[0] not in nucleotides) or (mutation[1] not in nucleotides):
             outMutationsNotUsed.write(mutation[0] + str(mutation[2]) + mutation[1] + ",mutation_does_not_involve_2_nucleotides\n")
+        #Remove cases where the variant matches the reference
+        elif mutation[0] == mutation[1]:
+            outMutationsNotUsed.write(mutation[0] + str(mutation[2]) + mutation[1] + ",variant_matches_reference\n")
         else:
             if args.multi_contig:
                 mutationContext = getMultiContigContext(mutation, reference)
