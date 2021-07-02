@@ -103,7 +103,9 @@ def plotMDS(distances, file_names, colourFile, output_dir):
             colours.append("blue")
     else:
         for eachFile in file_names:
-            colours.append(colourDict[eachFile.name])
+            #Removed .name from after eachFile as it seems like this will have strings as keys
+            #if a colour file is provided
+            colours.append(colourDict[eachFile])
 
     #Write MDS coordinates
     with open(output_dir + "mds_coordinates.txt", "w") as points_out:
