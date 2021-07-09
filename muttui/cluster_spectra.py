@@ -9,6 +9,8 @@ from math import sqrt, log2
 import numpy as np
 from scipy import spatial
 from sklearn import manifold
+import umap
+import umap.plot
 from matplotlib import pyplot as plt
 from plot_spectrum import convertSpectrumDict
 from compare_spectra import convertSpectrumProportions
@@ -129,6 +131,14 @@ def plotMDS(distances, file_names, colourFile, output_dir):
     plt.tight_layout()
     fig.savefig(output_dir + "sample_MDS.pdf")
 
+#UMAP clustering and plotting
+def plotUMAP(distances, output_dir):
+    distanceMap = umap.UMAP().fit(distances)
+
+    umapFig = umap.plot.points(distanceMap)
+
+    umapFig.figure.savefig(output_dir + "sample_umap.pdf")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -220,3 +230,5 @@ if __name__ == "__main__":
             distances_out.write("\n")
 
     plotMDS(distances, sampleNames, args.colour_file, args.output_dir)
+
+    plotUMAP(distances, args.output_dir)
