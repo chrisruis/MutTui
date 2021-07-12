@@ -350,7 +350,7 @@ def main():
                         else:
                             spectraDict[branchCategory][complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
                             outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + complement(mutationContext[1]) + "[" + complement(mutation[0]) + ">" + complement(mutation[3]) + "]" + complement(mutationContext[0]) + "," + clade.name + "\n")
-        
+    
     #Write the spectra to separate files
     for eachLabel in spectraDict:
         outFile = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".csv", "w")

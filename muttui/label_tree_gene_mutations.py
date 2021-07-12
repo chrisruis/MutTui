@@ -53,11 +53,11 @@ def labelTreeMutations(tree, mutations):
             
             #Add the genes to the node label
             for gene in mutations[clade.name]:
-                if gene not in upstreamLabel.split("____"):
+                if gene not in upstreamLabel.split("...."):
                     if upstreamLabel == "":
                         upstreamLabel = gene
                     else:
-                        upstreamLabel = upstreamLabel + "____" + gene
+                        upstreamLabel = upstreamLabel + "...." + gene
             
         clade.state = upstreamLabel
     

@@ -8,12 +8,12 @@ from Bio import AlignIO
 def run_treetime(alignment, tree, output_dir, add_treetime_cmds):
     ####This is the command for normal treetime
     ####Revert to this once the branch_mutations.txt file is added to treetime
-    #cmd = "treetime ancestral "
+    cmd = "treetime ancestral "
 
     ####Used to run a specific version of treetime until branch_mutations.txt
     ####is added into treetime
     ####Remove this once the file is incorporated
-    cmd = "python3 /Users/chris/Documents/abscessus/manchester.samples/muttui/treetime_fork/treetime/bin/treetime ancestral "
+    #cmd = "python3 /Users/chris/Documents/abscessus/manchester.samples/muttui/treetime_fork/treetime/bin/treetime ancestral "
 
     #Check if a model has been specified, if not use --gtr infer
     if add_treetime_cmds == None:
