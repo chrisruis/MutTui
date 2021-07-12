@@ -241,16 +241,25 @@ def getBranchCategory(tree, clade, include_all_branches):
 def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed):
     positionsToRemove = []
     doubleSubstitutions = []
+    #Used to distinguish double substitutions from longer tracts of substitutions
+    #positionsToExclude = []
+    #doubleSubstitutionPositions = []
 
     #Check if there are double substitutions along the branch and remove these mutations
-    for mutation1 in range(0, len(branchMutations)):
+    for mutation1 in range(0, (len(branchMutations) - 1)):
         #Check if the following mutation is at the adjacent genome position
         if (mutation1 + 1) != len(branchMutations):
-            if branchMutations[mutation1 + 1][2] == (branchMutations[mutation1][2] + 1):
-                positionsToRemove.append(mutation1)
-                positionsToRemove.append(mutation1 + 1)
-                doubleSubstitutions.append(branchMutations[mutation1])
-                doubleSubstitutions.append(branchMutations[mutation1 + 1])
+        #if branchMutations[mutation1 + 1][2] == (branchMutations[mutation1][2] + 1):
+        #    if mutation1 in doubleSubstitutionPositions:
+        #        positionsToExclude.append(mutation1 - 1)
+        #        positionsToExclude.append(mutation1)
+        #        positionsToExclude.append(mutation1 + 1)
+        #    doubleSubstitutionPositions.append(mutation1)
+        #    doubleSubstitutionPositions.append(mutation1 + 1)
+            positionsToRemove.append(mutation1)
+            positionsToRemove.append(mutation1 + 1)
+            doubleSubstitutions.append(branchMutations[mutation1])
+            doubleSubstitutions.append(branchMutations[mutation1 + 1])
         #Check if the position is at the start or end of the genome
         if (branchMutations[mutation1][2] == 1) or (branchMutations[mutation1][2] == referenceLength):
             positionsToRemove.append(mutation1)
@@ -261,10 +270,15 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
             positionsToRemove.append(mutation1)
             outMutationsNotUsed.write(branchMutations[mutation1][0] + str(branchMutations[mutation1][1]) + branchMutations[mutation1][3] + "," + branchMutations[mutation1][0] + str(branchMutations[mutation1][2]) + branchMutations[mutation1][3] + "," + clade.name + ",Mutation_does_not_involve_two_nucleotides\n")
     
+    #if len(doubleSubstitutionPositions) != 0:
+    #    doubleSubstitutions = [ position for position in doubleSubstitutionPositions if position not in positionsToExclude ]
+    #    print(doubleSubstitutions)
+    
     #If there is a tract of 3 or more substitutions at adjacent positions, some of the mutations
     #will be in doubleSubstitutions twice. Extract the unique double substitution positions
     uniqueDoubleSubstitutions = []
     if len(doubleSubstitutions) != 0:
+        print(branchMutations)
         dsSet = set()
         for ds in doubleSubstitutions:
             if tuple(ds) not in dsSet:
@@ -272,8 +286,8 @@ def filterMutations(branchMutations, clade, nucleotides, referenceLength, outMut
                 dsSet.add(tuple(ds))
     ####Write the double substitutions
     ####Will be removed once double substitutions are incorporated
-    for uds in uniqueDoubleSubstitutions:
-        outMutationsNotUsed.write(uds[0] + str(uds[1]) + uds[3] + "," + uds[0] + str(uds[2]) + uds[3] + "," + clade.name + ",Double_substitution\n")
+    #for uds in uniqueDoubleSubstitutions:
+    #    outMutationsNotUsed.write(uds[0] + str(uds[1]) + uds[3] + "," + uds[0] + str(uds[2]) + uds[3] + "," + clade.name + ",Double_substitution\n")
     
     #Remove the positions that will not be included in the spectrum
     if len(positionsToRemove) != 0:
@@ -678,6 +692,90 @@ def getRNADict():
     mutation["TACG"] = 0
     mutation["TACT"] = 0
 
+    return(mutation)
+
+#Creates an empty double substitution mutational spcetrum dictionary for DNA datasets, i.e. combining symmetric mutations
+#Each entry is reference 1, reference 2, mutation 1, mutation 2
+def getDoubleSubstitutionDict():
+    mutation = OrderedDict()
+    mutation["AACC"] = 0
+    mutation["AACG"] = 0
+    mutation["AACT"] = 0
+    mutation["AAGC"] = 0
+    mutation["AAGG"] = 0
+    mutation["AAGT"] = 0
+    mutation["AATC"] = 0
+    mutation["AATG"] = 0
+    mutation["AATT"] = 0
+    mutation["ACCA"] = 0
+    mutation["ACCG"] = 0
+    mutation["ACCT"] = 0
+    mutation["ACGA"] = 0
+    mutation["ACGG"] = 0
+    mutation["ACGT"] = 0
+    mutation["ACTA"] = 0
+    mutation["ACTG"] = 0
+    mutation["ACTT"] = 0
+    mutation["AGCA"] = 0
+    mutation["AGCC"] = 0
+    mutation["AGCT"] = 0
+    mutation["AGGA"] = 0
+    mutation["AGGC"] = 0
+    mutation["AGGT"] = 0
+    mutation["AGTA"] = 0
+    mutation["AGTC"] = 0
+    mutation["AGTT"] = 0
+    mutation["ATCA"] = 0
+    mutation["ATCC"] = 0
+    mutation["ATCG"] = 0
+    mutation["ATGA"] = 0
+    mutation["ATGC"] = 0
+    mutation["ATTA"] = 0
+    mutation["CAAC"] = 0
+    mutation["CAAG"] = 0
+    mutation["CAAT"] = 0
+    mutation["CAGC"] = 0
+    mutation["CAGG"] = 0
+    mutation["CAGT"] = 0
+    mutation["CATC"] = 0
+    mutation["CATG"] = 0
+    mutation["CATT"] = 0
+    mutation["CCAA"] = 0
+    mutation["CCAG"] = 0
+    mutation["CCAT"] = 0
+    mutation["CCGA"] = 0
+    mutation["CCGG"] = 0
+    mutation["CCGT"] = 0
+    mutation["CCTA"] = 0
+    mutation["CCTG"] = 0
+    mutation["CCTT"] = 0
+    mutation["CGAA"] = 0
+    mutation["CGAC"] = 0
+    mutation["CGAT"] = 0
+    mutation["CGGA"] = 0
+    mutation["CGGC"] = 0
+    mutation["CGTA"] = 0
+    mutation["GAAC"] = 0
+    mutation["GAAG"] = 0
+    mutation["GAAT"] = 0
+    mutation["GACC"] = 0
+    mutation["GACG"] = 0
+    mutation["GACT"] = 0
+    mutation["GATC"] = 0
+    mutation["GATG"] = 0
+    mutation["GATT"] = 0
+    mutation["GCAA"] = 0
+    mutation["GCAG"] = 0
+    mutation["GCAT"] = 0
+    mutation["GCCA"] = 0
+    mutation["GCCG"] = 0
+    mutation["GCTA"] = 0
+    mutation["TAAC"] = 0
+    mutation["TAAG"] = 0
+    mutation["TAAT"] = 0
+    mutation["TACC"] = 0
+    mutation["TACG"] = 0
+    mutation["TAGC"] = 0
     return(mutation)
 
 #Calculates the number of each mutation type in the spectrum

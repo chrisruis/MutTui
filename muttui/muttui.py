@@ -273,6 +273,7 @@ def main():
     
     #Branch categories as keys, spectra as values
     spectraDict = {}
+    doubleSpectraDict = {}
     #Create empty spectrum for each branch category
     if args.rna:
         for label in treeLabels:
@@ -280,6 +281,7 @@ def main():
     else:
         for label in treeLabels:
             spectraDict[label] = getMutationDict()
+            doubleSpectraDict[label] = getDoubleSubstitutionDict()
     
     #The 4 nucleotides, used to check if mutated, upstream and downstream bases are nucleotides
     nucleotides = ["A","C","G","T"]
@@ -300,9 +302,14 @@ def main():
     #and the root sequence from the ancestral reconstruction is used
     referenceSequence = getReference(args.reference, args.all_sites, alignment, positionTranslation)
     referenceLength = len(referenceSequence)
+
+    IT = 0
     
     #Iterate through the branches, get the category of the branch, identify the contextual mutations, add to the corresponding spectrum
     for clade in labelledTree.find_clades():
+        if IT == 25:
+            exit()
+        IT += 1
         #Check if there are mutations along the current branch, only need to analyse branches with mutations
         if clade.name in branchMutationDict:
             #The label of the current branch, this will be None if the label changes along this branch
@@ -327,6 +334,7 @@ def main():
             if branchCategory is not None:
                 #Extract double substitutions, remove mutations at the ends of the genome or not involving 2 nucleotides
                 branchMutations, doubleSubstitutions = filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed)
+                print(doubleSubstitutions)
                 
                 #Update the reference sequence to get the current context
                 updatedReference = updateReference(tree, clade, branchMutationDict, referenceSequence)
