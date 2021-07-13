@@ -79,17 +79,20 @@ def plotMutationType(mtCounts, outFile):
     mutations = list(mtCounts.keys())
     mutationCounts = list(mtCounts.values())
     #Convert the counts to proportions
-    mutationProportions = list()
-    totalMutations = float(sum(mutationCounts))
-    for m in mutationCounts:
-        mutationProportions.append(float(m)/totalMutations)
+    #mutationProportions = list()
+    #Used to plot proportion of mutations, now changed to plotting number of mutations so not used
+    #totalMutations = float(sum(mutationCounts))
+    #for m in mutationCounts:
+    #    mutationProportions.append(float(m)/totalMutations)
 
     #Colours of the bars
     colourSet = ["blue", "black", "red", "grey", "green", "pink"]
 
     fig = plt.figure()
     ax = plt.subplot(111)
-    ax.bar(mutations, mutationProportions, color = colourSet)
+    #Used to plot proportion of mutations, now changed to plotting number of mutations so not used
+    #ax.bar(mutations, mutationProportions, color = colourSet)
+    ax.bar(mutations, mutationCounts, color = colourSet)
     plt.xlabel("Mutation type")
     plt.ylabel("Proportion of mutations")
 

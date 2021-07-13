@@ -198,6 +198,9 @@ def main():
     outAllMutations = open(args.output_dir + "all_included_mutations.csv", "w")
     outAllMutations.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch\n")
 
+    outAllDouble = open(args.output_dir + "all_included_double_substitutions.csv", "w")
+    outAllDouble.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch,Forward\n")
+
     if not args.start_from_treetime:
         print("Running treetime ancestral reconstruction to identify mutations")
 
@@ -302,14 +305,9 @@ def main():
     #and the root sequence from the ancestral reconstruction is used
     referenceSequence = getReference(args.reference, args.all_sites, alignment, positionTranslation)
     referenceLength = len(referenceSequence)
-
-    IT = 0
     
     #Iterate through the branches, get the category of the branch, identify the contextual mutations, add to the corresponding spectrum
     for clade in labelledTree.find_clades():
-        if IT == 25:
-            exit()
-        IT += 1
         #Check if there are mutations along the current branch, only need to analyse branches with mutations
         if clade.name in branchMutationDict:
             #The label of the current branch, this will be None if the label changes along this branch
@@ -334,7 +332,6 @@ def main():
             if branchCategory is not None:
                 #Extract double substitutions, remove mutations at the ends of the genome or not involving 2 nucleotides
                 branchMutations, doubleSubstitutions = filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed)
-                print(doubleSubstitutions)
                 
                 #Update the reference sequence to get the current context
                 updatedReference = updateReference(tree, clade, branchMutationDict, referenceSequence)
@@ -358,7 +355,26 @@ def main():
                         else:
                             spectraDict[branchCategory][complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
                             outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + complement(mutationContext[1]) + "[" + complement(mutation[0]) + ">" + complement(mutation[3]) + "]" + complement(mutationContext[0]) + "," + clade.name + "\n")
+                
+                #Add double substitutions to the corresponding spectrum
+                if len(doubleSubstitutions) > 0:
+                    dsIter = iter(doubleSubstitutions)
+                    #print(doubleSubstitutions)
+                    for s1, s2 in zip(dsIter, dsIter):
+                        #Check if both mutations involve nucleotides, if not write both to the unused file
+                        if (s1[0] not in nucleotides) or (s1[3] not in nucleotides) or (s2[0] not in nucleotides) or (s2[3] not in nucleotides):
+                            outMutationsNotUsed.write(s1[0] + str(s1[1]) + s1[3] + "," + s1[0] + str(s1[2]) + s1[3] + "," + clade.name + ",Double_substitution_does_not_involve_two_nucleotides\n")
+                            outMutationsNotUsed.write(s2[0] + str(s2[1]) + s2[3] + "," + s2[0] + str(s2[2]) + s2[3] + "," + clade.name + ",Double_substitution_does_not_involve_two_nucleotides\n")
+                        else:
+                            #This will be true for all RNA mutations and half of DNA mutations
+                            if (s1[0] + s2[0] + s1[3] + s2[3]) in doubleSpectraDict[branchCategory]:
+                                doubleSpectraDict[branchCategory][s1[0] + s2[0] + s1[3] + s2[3]] += 1
+                                outAllDouble.write(s1[0] + s2[0] + str(s1[1]) + s1[3] + s2[3] + "," + s1[0] + s2[0] + str(s1[2]) + s1[3] + s2[3] + "," + s1[0] + s2[0] + ">" + s1[3] + s2[3] + "," + clade.name + ",Forward\n")
+                            else:
+                                doubleSpectraDict[branchCategory][complement(s2[0]) + complement(s1[0]) + complement(s2[3]) + complement(s1[3])] += 1
+                                outAllDouble.write(complement(s2[0]) + complement(s1[0]) + str(s1[1]) + complement(s2[3]) + complement(s1[3]) + "," + complement(s2[0]) + complement(s1[0]) + str(s1[2]) + complement(s2[3]) + complement(s1[3]) + "," + complement(s2[0]) + complement(s1[0]) + ">" + complement(s2[3]) + complement(s1[3]) + "," + clade.name + ",Reverse\n")
     
+    print(doubleSpectraDict)
     #Write the spectra to separate files
     for eachLabel in spectraDict:
         outFile = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".csv", "w")
@@ -386,6 +402,12 @@ def main():
         outMTSpectrum = open(args.output_dir + "mutation_types_label_" + eachLabel + ".pdf", "w")
         plotMutationType(mtCounts, outMTSpectrum)
         outMTSpectrum.close()
+
+        #Write the double substitution spectrum
+        outDouble = open(args.output_dir + "DBS_label_" + eachLabel + ".csv", "w")
+        outDouble.write("Substitution,Number_of_mutations\n")
+        for eachMutation in doubleSpectraDict[eachLabel]:
+            outDouble.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(doubleSpectraDict[eachLabel][eachMutation]) + "\n")
     
     #Write the spectra to a combined catalog if there is more than 1 label
     if len(spectraDict.keys()) > 1:
@@ -406,6 +428,7 @@ def main():
     #Close output files
     outMutationsNotUsed.close()
     outAllMutations.close()
+    outAllDouble.close()
 
 if __name__ == "__main__":
     main()
