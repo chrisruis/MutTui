@@ -22,7 +22,7 @@ if __name__ == "__main__":
                         "--conversion",
                         dest = "conversion",
                         required = False,
-                        help = "Optional csv file containing sample name conversion. Should have " + 
+                        help = "Optional tab separated file containing sample name conversion. Should have " + 
                         "two columns with no header. Column 1 is the path to the file as it will " + 
                         "be given to the script. Column 2 is the name of the sample in the output",
                         type = argparse.FileType("r"))
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     if args.conversion:
         cFile = open(args.conversion.name).readlines()
         for line in cFile:
-            sampleDict[line.strip().split(",")[1]] = line.strip().split(",")[0]
+            sampleDict[line.strip().split("\t")[1]] = line.strip().split("\t")[0]
     #Otherwise name samples as Sample i
     else:
         for i, spectrum in enumerate(args.spectra):
