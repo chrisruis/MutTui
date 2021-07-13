@@ -94,7 +94,49 @@ def plotMutationType(mtCounts, outFile):
     #ax.bar(mutations, mutationProportions, color = colourSet)
     ax.bar(mutations, mutationCounts, color = colourSet)
     plt.xlabel("Mutation type")
-    plt.ylabel("Proportion of mutations")
+    plt.ylabel("Number of mutations")
+
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
+
+#Plots a double substitution spectrum
+def plotDouble(spectrum, outFile):
+    #Extracts the mutations and counts to separate lists
+    mutations = list(spectrum.keys())
+    mutationCounts = list(spectrum.values())
+
+    #Extract x-axis labels which are the bases mutated to
+    labels = list()
+    for m in spectrum:
+        labels.append(m.split(">")[1])
+
+    #Colours of the bars
+    colours = ["red", "red", "red", "red", "red", "red", "red", "red", "red", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "gold", "gold", "gold", "gold", "gold", "gold", "gold", "gold", "gold", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "cyan", "cyan", "cyan", "cyan", "cyan", "cyan", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon"]
+    colourSet = ["red", "limegreen", "gold", "dodgerblue", "orange", "mediumpurple", "cyan", "magenta", "yellowgreen", "darksalmon"]
+
+    #Used to plot the rectangles above the plot containing the mutation type
+    rect_lower = float(np.max(mutationCounts)) + float(np.max(mutationCounts) * 0.05)
+    rect_width = float(np.max(mutationCounts)) * 0.1
+    
+    #The coordinates of the mutation type rectangles and text
+    mutation_types = ["AA>NN", "AC>NN", "AG>NN", "AT>NN", "CA>NN", "CC>NN", "CG>NN", "GA>NN", "GC>NN", "TA>NN"]
+    rect_coords = [-0.5, 8.5, 17.5, 26.5, 32.5, 41.5, 50.5, 56.5, 65.5, 71.5]
+    rect_length = [9, 9, 9, 6, 9, 9, 6, 9, 6, 6]
+    text_coords = [1, 10, 19, 26.75, 34, 43, 50.75, 58, 65.75, 71.75]
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.bar(mutations, mutationCounts, color = colours)
+    for i, rect in enumerate(rect_coords):
+        ax.add_patch(plt.Rectangle((rect, rect_lower), rect_length[i], rect_width, facecolor = colourSet[i]))
+        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], size = 7)
+    plt.xlabel("Mutation")
+    plt.ylabel("Number of mutations")
+    plt.tick_params(axis = "x", which = "major", labelsize = 4)
+    plt.xticks(ticks = mutations, rotation = 90, labels = labels)
+    plt.margins(0)
 
     if type(outFile) == str:
         plt.savefig(outFile)
@@ -167,6 +209,18 @@ if __name__ == "__main__":
                         dest = "outFile",
                         required = True,
                         help = "Output PDF file to which spectrum will be written")
+    parser.add_argument("--types",
+                        dest = "types",
+                        help = "Specify to plot mutation types spectrum. Plotting a single base substitution " + 
+                        "spectrum is default",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("--double",
+                        dest = "double",
+                        help = "Specify to plot a double substitution spectrum. Plotting a single base substitution " + 
+                        "spectrum is default",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--rna",
                         dest = "rna",
                         help = "Specify if using an RNA pathogen, will plot an RNA mutational spectrum",
@@ -178,4 +232,9 @@ if __name__ == "__main__":
     #Extract the spectrum to a dictionary with mutations as keys and counts as values
     spectrum = convertSpectrumDict(args.spectrum_file)
 
-    plotSpectrumFromDict(spectrum, args.outFile)
+    if args.types:
+        plotMutationType(spectrum, args.outFile)
+    elif args.double:
+        plotDouble(spectrum, args.outFile)
+    else:
+        plotSpectrumFromDict(spectrum, args.outFile)

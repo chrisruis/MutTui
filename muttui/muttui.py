@@ -374,7 +374,6 @@ def main():
                                 doubleSpectraDict[branchCategory][complement(s2[0]) + complement(s1[0]) + complement(s2[3]) + complement(s1[3])] += 1
                                 outAllDouble.write(complement(s2[0]) + complement(s1[0]) + str(s1[1]) + complement(s2[3]) + complement(s1[3]) + "," + complement(s2[0]) + complement(s1[0]) + str(s1[2]) + complement(s2[3]) + complement(s1[3]) + "," + complement(s2[0]) + complement(s1[0]) + ">" + complement(s2[3]) + complement(s1[3]) + "," + clade.name + ",Reverse\n")
     
-    print(doubleSpectraDict)
     #Write the spectra to separate files
     for eachLabel in spectraDict:
         outFile = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".csv", "w")
@@ -408,6 +407,12 @@ def main():
         outDouble.write("Substitution,Number_of_mutations\n")
         for eachMutation in doubleSpectraDict[eachLabel]:
             outDouble.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(doubleSpectraDict[eachLabel][eachMutation]) + "\n")
+        
+        #Plot the double substitution spectrum
+        outDoubleSpectrum = open(args.output_dir + "DBS_label_" + eachLabel + ".pdf", "w")
+        doubleFormat = convertSpectrumFormat(doubleSpectraDict[eachLabel])
+        plotDouble(doubleFormat, outDoubleSpectrum)
+        outDoubleSpectrum.close()
     
     #Write the spectra to a combined catalog if there is more than 1 label
     if len(spectraDict.keys()) > 1:
