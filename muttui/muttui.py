@@ -373,6 +373,10 @@ def main():
                             else:
                                 doubleSpectraDict[branchCategory][complement(s2[0]) + complement(s1[0]) + complement(s2[3]) + complement(s1[3])] += 1
                                 outAllDouble.write(complement(s2[0]) + complement(s1[0]) + str(s1[1]) + complement(s2[3]) + complement(s1[3]) + "," + complement(s2[0]) + complement(s1[0]) + str(s1[2]) + complement(s2[3]) + complement(s1[3]) + "," + complement(s2[0]) + complement(s1[0]) + ">" + complement(s2[3]) + complement(s1[3]) + "," + clade.name + ",Reverse\n")
+            #Write the mutations on the branch to the not used file
+            else:
+                for eM in branchMutations:
+                    outMutationsNotUsed.write(eM[0] + str(eM[1]) + eM[3] + "," + eM[0] + str(eM[2]) + eM[3] + "," + clade.name + ",Label_changes_on_branch\n")
     
     #Write the spectra to separate files
     for eachLabel in spectraDict:

@@ -57,7 +57,13 @@ def labelBranchesTreetime(tree):
 
     for clade in tree.find_clades():
         if not clade.is_terminal():
-            clade.name = "NODE_" + str(iterator).zfill(7)
+            #Check if the clade already has a name in the input tree, if it does then keep that name
+            #If it doesn't, name it with its node number in the tree
+            #Therefore if the tree is partially labelled, nodes with labels will keep their label while
+            #nodes without labels will be given a node label. This is how treetime deals with partially labelled
+            #trees so will enable matching of branch names with the branch_mutations.txt file
+            if not clade.name:
+                clade.name = "NODE_" + str(iterator).zfill(7)
             iterator += 1
     
     return(tree)
