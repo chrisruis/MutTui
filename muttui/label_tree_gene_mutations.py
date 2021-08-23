@@ -40,6 +40,9 @@ def labelTreeMutations(tree, mutations):
     #Label the root
     tree.root.state = "R"
 
+    #Keys are branch names, values are labels
+    branches = dict()
+
     #Iterate through the clades in the tree, check if they have mutations in mutations,
     #update their label if necessary, if not add label from parent clade
     for clade in tree.find_clades():
@@ -64,12 +67,13 @@ def labelTreeMutations(tree, mutations):
     #Relabel the tree names with the state so the tree can be saved with labels
     #Append to the taxon name if a tip branch, assign to the clade name if an internal branch
     for clade in tree.find_clades():
+        branches[clade.name] = clade.state
         if clade.is_terminal():
             clade.name = clade.name + "____" + clade.state
         else:
             clade.name = clade.state
     
-    return(tree)
+    return(tree, branches)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -104,7 +108,8 @@ if __name__ == "__main__":
     parser.add_argument("-o",
                         "--outFile",
                         dest = "outFile",
-                        help = "Output newick file to which labelled tree will be written")
+                        help = "Output file prefix. 2 output files are writte: a .nwk file containing the labelled tree " + 
+                        "and a .csv file containg the branch in column 1 and its label in column 2")
     
     args = parser.parse_args()
 
@@ -115,7 +120,16 @@ if __name__ == "__main__":
     mutations = extractMutationEffects(args.mutations, args.genes, args.effect)
 
     #Label the tree based on mutations
-    stateTree = labelTreeMutations(tree, mutations)
+    stateTree, branches = labelTreeMutations(tree, mutations)
 
     #Write the tree
-    Phylo.write(stateTree, args.outFile, "newick")
+    Phylo.write(stateTree, args.outFile + ".nwk", "newick")
+
+    #Write the branch conversion
+    outFile = open(args.outFile + ".csv", "w")
+    outFile.write("branch,label\n")
+
+    for branch in branches:
+        outFile.write(str(branch) + "," + branches[branch] + "\n")
+
+    outFile.close()
