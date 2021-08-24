@@ -129,6 +129,12 @@ def get_options():
                         "spectrum of the downstream label",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--exclude_root_branches",
+                        dest = "exclude_root_branches",
+                        help = "Use when excluding the two branches that branch directly from the root node. These branches will " +
+                        "not be included in any spectrum",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-rs",
                         "--root_state",
                         dest = "root_state",
@@ -325,6 +331,12 @@ def main():
                     else:
                         spectraDict[clade.name] = getMutationDict()
                 else:
+                    branchCategory = None
+            
+            #If using --exclude_root_branches, check if the branch comes off the root, if so set the branchCategory
+            #to None so it won't be analysed
+            if args.exclude_root_branches:
+                if len(labelledTree.get_path(clade)) == 1:
                     branchCategory = None
 
             #Check if the branch has a category, will be None if the branch is a transition between categories
