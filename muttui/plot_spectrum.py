@@ -27,6 +27,18 @@ def convertSpectrumFormat(spectrum):
     
     return(spectrumDict)
 
+#Converts a given spectrum from number of mutations to proportion of mutations
+def convertSpectrumProportions(spectrum):
+    totalMutations = float(0)
+
+    for mutation in spectrum:
+        totalMutations += float(spectrum[mutation])
+    
+    for eachMutation in spectrum:
+        spectrum[eachMutation] = float(spectrum[eachMutation])/totalMutations
+    
+    return(spectrum)
+
 #Plots a spectrum from a dictionary with mutations as keys and mutation counts as values
 def plotSpectrumFromDict(spectrum, outFile):
     #The 96 DNA mutations as a list, used so they are always in the same order
@@ -102,7 +114,10 @@ def plotMutationType(mtCounts, outFile):
         plt.savefig(outFile.name)
 
 #Plots a double substitution spectrum
-def plotDouble(spectrum, outFile):
+def plotDouble(spectrum, proportion, outFile):
+    #Convert the spectrum to proportions if needed
+    if proportion:
+        spectrum = convertSpectrumProportions(spectrum)
     #Extracts the mutations and counts to separate lists
     mutations = list(spectrum.keys())
     mutationCounts = list(spectrum.values())
@@ -130,10 +145,18 @@ def plotDouble(spectrum, outFile):
     ax = plt.subplot(111)
     ax.bar(mutations, mutationCounts, color = colours)
     for i, rect in enumerate(rect_coords):
-        ax.add_patch(plt.Rectangle((rect, rect_lower), rect_length[i], rect_width, facecolor = colourSet[i]))
-        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], size = 7)
+        if proportion:
+            ax.add_patch(plt.Rectangle((rect, 1), rect_length[i], 0.1, facecolor = colourSet[i]))
+            ax.text(text_coords[i], 1.035, mutation_types[i], size = 7)
+        else:
+            ax.add_patch(plt.Rectangle((rect, rect_lower), rect_length[i], rect_width, facecolor = colourSet[i]))
+            ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], size = 7)
+    if proportion:
+        plt.ylim([0, 1.1])
+        plt.ylabel("Proportion of mutations")
+    else:
+        plt.ylabel("Number of mutations")
     plt.xlabel("Mutation")
-    plt.ylabel("Number of mutations")
     plt.tick_params(axis = "x", which = "major", labelsize = 4)
     plt.xticks(ticks = mutations, rotation = 90, labels = labels)
     plt.margins(0)
@@ -226,6 +249,11 @@ if __name__ == "__main__":
                         help = "Specify if using an RNA pathogen, will plot an RNA mutational spectrum",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--proportion",
+                        dest = "proportion",
+                        help = "Specify to plot the spectrum as proportion of mutations rather than number of mutations",
+                        action = "store_true",
+                        default = False)
     
     args = parser.parse_args()
 
@@ -235,6 +263,6 @@ if __name__ == "__main__":
     if args.types:
         plotMutationType(spectrum, args.outFile)
     elif args.double:
-        plotDouble(spectrum, args.outFile)
+        plotDouble(spectrum, args.proportion, args.outFile)
     else:
         plotSpectrumFromDict(spectrum, args.outFile)
