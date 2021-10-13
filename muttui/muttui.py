@@ -427,7 +427,7 @@ def main():
         #Plot the double substitution spectrum
         outDoubleSpectrum = open(args.output_dir + "DBS_label_" + eachLabel + ".pdf", "w")
         doubleFormat = convertSpectrumFormat(doubleSpectraDict[eachLabel])
-        plotDouble(doubleFormat, outDoubleSpectrum)
+        plotDouble(doubleFormat, False, outDoubleSpectrum)
         outDoubleSpectrum.close()
     
     #Write the spectra to a combined catalog if there is more than 1 label
