@@ -205,7 +205,7 @@ def main():
     outAllMutations.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch\n")
 
     outAllDouble = open(args.output_dir + "all_included_double_substitutions.csv", "w")
-    outAllDouble.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch,Forward\n")
+    outAllDouble.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch,Original_mutation\n")
 
     if not args.start_from_treetime:
         print("Running treetime ancestral reconstruction to identify mutations")
@@ -371,7 +371,6 @@ def main():
                 #Add double substitutions to the corresponding spectrum
                 if len(doubleSubstitutions) > 0:
                     dsIter = iter(doubleSubstitutions)
-                    #print(doubleSubstitutions)
                     for s1, s2 in zip(dsIter, dsIter):
                         #Check if both mutations involve nucleotides, if not write both to the unused file
                         if (s1[0] not in nucleotides) or (s1[3] not in nucleotides) or (s2[0] not in nucleotides) or (s2[3] not in nucleotides):

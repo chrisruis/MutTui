@@ -8,10 +8,31 @@ import argparse
 from Bio import Phylo
 import os
 
+#Extracts depths from a tree, returns a dictionary with clade names as keys and depths as values
+def extractDepths(tree):
+    #Extract depths of all nodes
+    depths = tree.depths()
+
+    #Node names as keys, depths as values
+    nodeDepths = dict()
+
+    #Root branch length, often not zero so need to subtract from other depths
+    rootBranch = tree.root.branch_length
+
+    #Iterate through the nodes and add to nodeDepths
+    for clade in tree.find_clades():
+        if clade.is_terminal():
+            nodeDepths[clade.name] = depths[clade] - rootBranch
+        else:
+            nodeDepths[clade.confidence] = depths[clade] - rootBranch
+    
+    return(nodeDepths)
+
 #Labels each branch in a tree with its total mutations and mutation proportions
 def convertTreeMutations(tree, bM, bMT):
     #Iterate through the clades and label them with their mutation proportions
     for clade in tree.find_clades():
+        #print(clade.name, depths[clade])
         #Do not analyse the root
         if len(tree.get_path(clade)) != 0:
 
@@ -74,7 +95,10 @@ def convertTreeMutations(tree, bM, bMT):
                     TG = float(0)
                     P_TG = float(0)
                 
-                clade.name += ",total_mutations=" + str(totalM)
+                if clade.is_terminal():
+                    clade.name += "total_mutations=" + str(totalM)
+                else:
+                    clade.name += ",total_mutations=" + str(totalM)
                 clade.name += ",C_A=" + str(CA) 
                 clade.name += ",C_G=" + str(CG)
                 clade.name += ",C_T=" + str(CT)
@@ -144,7 +168,7 @@ if __name__ == "__main__":
 
     #Open output files
     outFile = open(args.outfile + ".csv", "w")
-    outFile.write("Branch,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
+    outFile.write("Branch,Depth,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
     outFile_tree = open(args.outfile + "_temp.nex", "w")
     outFile_tree_2 = open(args.outfile + ".nex", "w")
 
@@ -152,6 +176,11 @@ if __name__ == "__main__":
     bM = dict()
     #Will be filled with branch:mutation as keys and number of mutations as values
     bMT = dict()
+
+    #Import the tree
+    tree = Phylo.read(args.tree.name, "nexus")
+    #Extract tree depths
+    nodeDepths = extractDepths(tree)
 
     #The mutation types to be examined
     mutationTypes = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
@@ -176,7 +205,7 @@ if __name__ == "__main__":
     
     #Write the mutations on each branch
     for branch in bM:
-        outFile.write(branch + "," + str(bM[branch]) + ",")
+        outFile.write(branch + "," + str(nodeDepths[branch]) + "," + str(bM[branch]) + ",")
         tM = float(bM[branch])
 
         for mt in mutationTypes:
@@ -192,9 +221,6 @@ if __name__ == "__main__":
                 outFile.write("0,")
         
         outFile.write("\n")
-    
-    #Import the tree
-    tree = Phylo.read(args.tree.name, "nexus")
 
     #Convert the tips so they can be written in BEAST format
     tipDict, tipList = convertTipDict(tree)
@@ -214,7 +240,7 @@ if __name__ == "__main__":
     labelledTree = convertTreeMutations(tree, bM, bMT)
     
     #Write the labelled tree
-    outFile_tree.write("#NEXUS\n\nBegin taxa;\n\tDimensions ntax=")
+    outFile_tree.write("#NEXUS\n\nBegin Taxa;\n\tDimensions NTax=")
     outFile_tree.write(str(len(tipList)))
     outFile_tree.write(";\n\t\tTaxLabels\n")
     for t in tipList:
