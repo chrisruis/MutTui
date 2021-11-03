@@ -144,15 +144,6 @@ def get_options():
                         "treetime mugration output. In these rare cases, use this option to assign the root state. This option " + 
                         "can also be used to assign a root state if you'd like but its recommended to use the mugration state",
                         default = None)
-    parser.add_argument("--filter",
-                        dest = "filter",
-                        help = "Converts gaps to Ns in the sequence alignment. treetime will reconstruct gaps onto the tree. " + 
-                        "This is fine when there's not many gap but if the alignment contains many gaps, the annotated tree from " + 
-                        "treetime becomes very large and time consuming to read into python. Ns are not reconstructed by treetime. " + 
-                        "By converting gaps to Ns, it reduces the number of reconstructed mutations and greatly speeds up run time. " + 
-                        "Use this option if your alignment contains many gaps",
-                        action = "store_true",
-                        default = False)
     parser.add_argument("--start_from_treetime",
                         dest = "start_from_treetime",
                         help = "Use this option to start with treetime output and so skip inference of ancestral mutations. Use this " + 
@@ -210,14 +201,9 @@ def main():
     if not args.start_from_treetime:
         print("Running treetime ancestral reconstruction to identify mutations")
 
-        #Check if the alignment is to be converted so gaps become Ns. If so, run the conversion
-        #and run treetime on the new alignment
-        if args.filter:
-            change_gaps_to_Ns(args.alignment, args.output_dir)
-            run_treetime(open(args.output_dir + "gaps_to_N_alignment.fasta"), args.tree, args.output_dir, args.add_treetime_cmds)
-        else:
-            #Run treetime on the input alignment and tree with any provided options
-            run_treetime(args.alignment, args.tree, args.output_dir, args.add_treetime_cmds)
+        #Convert gaps to Ns in the alignment, run treetime on the new alignment
+        change_gaps_to_Ns(args.alignment, args.output_dir)
+        run_treetime(open(args.output_dir + "gaps_to_N_alignment.fasta"), args.tree, args.output_dir, args.add_treetime_cmds)
     
         print("treetime reconstruction complete. Importing alignment from reconstruction and tree")
 
