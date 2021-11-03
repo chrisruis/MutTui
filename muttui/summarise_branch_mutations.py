@@ -28,6 +28,20 @@ def extractDepths(tree):
     
     return(nodeDepths)
 
+#Extracts branch lengths from a tree, returns a dictionary with clade names as keys and branch lengths as values
+def extractBLs(tree):
+    #Node names as keys, branch lengths as values
+    bl = dict()
+
+    #Iterate through the nodes and add to bl
+    for clade in tree.find_clades():
+        if clade.is_terminal():
+            bl[clade.name] = clade.branch_length
+        else:
+            bl[clade.confidence] = clade.branch_length
+    
+    return(bl)
+
 #Labels each branch in a tree with its total mutations and mutation proportions
 def convertTreeMutations(tree, bM, bMT):
     #Iterate through the clades and label them with their mutation proportions
@@ -168,7 +182,7 @@ if __name__ == "__main__":
 
     #Open output files
     outFile = open(args.outfile + ".csv", "w")
-    outFile.write("Branch,Depth,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
+    outFile.write("Branch,Branch_length,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
     outFile_tree = open(args.outfile + "_temp.nex", "w")
     outFile_tree_2 = open(args.outfile + ".nex", "w")
 
@@ -179,8 +193,8 @@ if __name__ == "__main__":
 
     #Import the tree
     tree = Phylo.read(args.tree.name, "nexus")
-    #Extract tree depths
-    nodeDepths = extractDepths(tree)
+    #Extract tree branch lengths
+    branchLengths = extractBLs(tree)
 
     #The mutation types to be examined
     mutationTypes = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
@@ -205,7 +219,7 @@ if __name__ == "__main__":
     
     #Write the mutations on each branch
     for branch in bM:
-        outFile.write(branch + "," + str(nodeDepths[branch]) + "," + str(bM[branch]) + ",")
+        outFile.write(branch + "," + str(branchLengths[branch]) + "," + str(bM[branch]) + ",")
         tM = float(bM[branch])
 
         for mt in mutationTypes:
