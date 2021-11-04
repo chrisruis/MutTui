@@ -22,11 +22,16 @@ def labelAllClades(tree):
     return(tree)
 
 #Extracts dictionary from state changes, nodes as keys, states as values
-def getStateDict(states):
+def getStateDict(states, stateFile):
     stateDict = {}
 
-    for state in states:
-        stateDict[state.split("____")[0]] = state.split("____")[1]
+    if states:
+        for state in states:
+            stateDict[state.split("____")[0]] = state.split("____")[1]
+    else:
+        with open(stateFile.name) as fileobject:
+            for line in fileobject:
+                stateDict[line.strip().split("\t")[0]] = line.strip().split("\t")[1]
     
     return(stateDict)
 
@@ -80,15 +85,22 @@ if __name__ == "__main__":
                         dest = "root_state",
                         required = True,
                         help = "The state at the root of the tree. For example using -r A will set the state to A at the root")
-    parser.add_argument("-s",
+    states = parser.add_mutually_exclusive_group(required = True)
+    states.add_argument("-s",
                         "--state_changes",
                         dest = "state_changes",
-                        required = True,
                         nargs = "+",
                         help = "Branches and state changes. Give the name of the branch along which the state " + 
                         "change occured and the state at the end of the branch. Separate the branch name and state " +
                         "with ____ (4 underscores). Get the branch names from add_tree_node_labels.py. " +
-                        "For example, giving Node2____S will change the state at the end of branch Node2 to S")
+                        "For example, giving Node2____S will change the state at the end of branch Node2 to S. Either -s or -sf is required")
+    states.add_argument("-sf",
+                        "--state_file",
+                        dest = "state_file",
+                        help = "File containing branches on which the label should change. This file needs 2 columns, separated by a tab " +
+                        "with no header. The first column contains the branches on which the label should change, the second contains the label that should " + 
+                        "be changed to. Either -s or -sf is required",
+                        type = argparse.FileType("r"))
     parser.add_argument("-o",
                         "--outfile",
                         dest = "outFile",
@@ -103,7 +115,7 @@ if __name__ == "__main__":
     labelledTree = labelAllClades(tree)
 
     #Extract the state changes to a dictionary, node names as keys, states as values
-    stateDict = getStateDict(args.state_changes)
+    stateDict = getStateDict(args.state_changes, args.state_file)
 
     #Label the tree with the given state
     stateTree = labelTreeState(labelledTree, args.root_state, stateDict)
