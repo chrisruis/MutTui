@@ -142,27 +142,32 @@ def plotUMAP(distances, output_dir):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-s",
+    spectra = parser.add_mutually_exclusive_group(required = True)
+    spectra.add_argument("-s",
                         "--spectra",
                         dest = "spectra",
                         nargs = "+",
                         help = "Spectrum files to be clustered. All files specified with -s will be clustered",
-                        type = argparse.FileType("r"),
-                        default = False)
-    parser.add_argument("-c",
+                        type = argparse.FileType("r"))
+    spectra.add_argument("-c",
                         "--catalog",
                         dest = "catalog",
                         help = "Multi-sample catalog containing spectra, samples as columns and mutation counts as rows",
-                        type = argparse.FileType("r"),
-                        default = False)
+                        type = argparse.FileType("r"))
+    parser.add_argument("-l",
+                        "--labels",
+                        dest = "labels",
+                        nargs = "+",
+                        help = "Labels for each spectrum provided with -s. If not provided, the file names will be used as labels",
+                        default = None)
     parser.add_argument("-m",
                         "--method",
                         dest = "method",
-                        default = "cosine",
                         help = "The method used to calculate distances between pairs of spectra. " + 
                         "Options are cosine similarity (specified with cosine), Bhattacharyya and JS (Jensen-Shannon). Cosine " +
-                        "similarity is default")
-    parser.add_argument("-l",
+                        "similarity is default",
+                        default = "cosine")
+    parser.add_argument("-cl",
                         "--colours",
                         dest = "colour_file",
                         default = None,
@@ -180,9 +185,11 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    if (not args.spectra and not args.catalog) or (args.spectra and args.catalog):
-        raise RuntimeError("Needs to be run on multiple individual mutational spectra provided with -s or a single multi-sample catalog provided with -c")
-
+    #If using labels, verify that there are the same number of labels as spectra
+    if args.labels:
+        if len(args.spectra) != len(args.labels):
+            raise RuntimeError("The number of labels provided with -l must match the number of spectra provided with -s")
+    
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
@@ -194,8 +201,11 @@ if __name__ == "__main__":
 
     if args.spectra:
         #Extract the spectra into spectraList
-        for spectrum in args.spectra:
-            sampleNames.append(spectrum.name)
+        for i, spectrum in enumerate(args.spectra):
+            if args.labels:
+                sampleNames.append(args.labels[i])
+            else:
+                sampleNames.append(spectrum.name)
             spectraList.append(convertSpectrumProportions(convertSpectrumDict(spectrum)))
     else:
         #Extract the catalog into spectraList
