@@ -21,11 +21,18 @@ if __name__ == "__main__":
     parser.add_argument("-c",
                         "--conversion",
                         dest = "conversion",
-                        required = False,
                         help = "Optional tab separated file containing sample name conversion. Should have " + 
                         "two columns with no header. Column 1 is the path to the file as it will " + 
                         "be given to the script. Column 2 is the name of the sample in the output",
-                        type = argparse.FileType("r"))
+                        type = argparse.FileType("r"),
+                        default = False)
+    parser.add_argument("-l",
+                        "--labels",
+                        dest = "labels",
+                        nargs = "+",
+                        help = "Optional labels to be given to spectra in the combined catalogue. Needs to have " + 
+                        "one label for each spectrum provided with -s",
+                        default = False)
     parser.add_argument("-o",
                         "--outFile",
                         dest = "outFile",
@@ -34,6 +41,10 @@ if __name__ == "__main__":
                         " and a tab separated mutation matrix")
     
     args = parser.parse_args()
+
+    #Check a maximum of 1 label option is provided
+    if args.conversion and args.labels:
+        raise RuntimeError("Please provide either labels with -l or a label file with -c, not both")
 
     outFile = open(args.outFile + ".csv", "w")
     outFileMatrix = open(args.outFile + ".txt", "w")
@@ -52,6 +63,12 @@ if __name__ == "__main__":
         cFile = open(args.conversion.name).readlines()
         for line in cFile:
             sampleDict[line.strip().split("\t")[1]] = line.strip().split("\t")[0]
+    #If labels are provided, use these
+    elif args.labels:
+        if len(args.spectra) != len(args.labels):
+            raise RuntimeError("The number of labels needs to match the number of spectra")
+        for i in range(len(args.spectra)):
+            sampleDict[args.labels[i]] = args.spectra[i].name
     #Otherwise name samples as Sample i
     else:
         for i, spectrum in enumerate(args.spectra):
