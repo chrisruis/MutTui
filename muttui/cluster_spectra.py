@@ -37,20 +37,33 @@ def convertCatalog(catalogFile):
     
     return(spectraList, sampleNames)
 
-#Converts a given colouring file to a dictionary with files as keys and colours as distances
+#Converts a given colouring file to a dictionary with files as keys and colours as values and
+#an array of colours for umap
 def getColourDict(colourFile):
     if colourFile is None:
-        return(None)
+        return(None, None)
     
     else:
-        colours = open(colourFile.name).readlines()
-
         colourDict = {}
 
-        for eachFile in colours:
-            colourDict[eachFile.strip().split("\t")[0]] = eachFile.strip().split("\t")[1]
+        #Conversion from label to identifier
+        conversion = dict()
+        #Incremented with each new label
+        iterator = 0
+        colourList = []
+
+        #Iterate through the labels, add the label to colourList
+        #Add to the label conversion if not already present
+        with open(colourFile.name) as fileobject:
+            for line in fileobject:
+                l = line.strip().split("\t")[1]
+                colourDict[line.strip().split("\t")[0]] = l
+                if l not in conversion:
+                    conversion[l] = iterator
+                    iterator += 1
+                colourList.append(conversion[l])
         
-        return(colourDict)
+        return(colourDict, colourList)
 
 #Calculates the distance between 2 given spectra
 def calculateSpectraDistance(spectrum1, spectrum2, method):
@@ -91,14 +104,14 @@ def getDistanceMatrix(spectraList):
     return(distances)
 
 #Plots a multidimensional scaling based on a given distance matrix
-def plotMDS(distances, file_names, colourFile, output_dir):
+def plotMDS(distances, file_names, colourDict, output_dir):
     #MDS of the distances
     mds = manifold.MDS(n_components = 2, dissimilarity = "precomputed")
     projection = mds.fit(distances)
     coords = projection.embedding_
 
     #Extract the colours of each point
-    colourDict = getColourDict(colourFile)
+    #colourDict = getColourDict(colourFile)
     colours = []
     if colourDict is None:
         for eachFile in file_names:
@@ -132,10 +145,14 @@ def plotMDS(distances, file_names, colourFile, output_dir):
     fig.savefig(output_dir + "sample_MDS.pdf")
 
 #UMAP clustering and plotting
-def plotUMAP(distances, output_dir):
+def plotUMAP(distances, colours, output_dir):
     distanceMap = umap.UMAP().fit(distances)
 
-    umapFig = umap.plot.points(distanceMap)
+    if colours is not None:
+        labels = np.array(colours)
+        umapFig = umap.plot.points(distanceMap, labels = labels)
+    else:
+        umapFig = umap.plot.points(distanceMap)
 
     umapFig.figure.savefig(output_dir + "sample_umap.pdf")
 
@@ -173,10 +190,16 @@ if __name__ == "__main__":
                         default = None,
                         help = "Optional file containing information to colour points in the output clustering. " + 
                         "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
-                        "file path of each spectrum that will be clustered. Give the path from the directory in " + 
-                        "which you will run the script as it would be provided to -s. Column 2 is the colour that the " + 
-                        "corresponding point will be.",
+                        "name of the sample. If providing labels with -l, these names should match the labels. If " +
+                        "using a catalog, these names should match the column names. If using file paths, these names should " +
+                        "match the file paths, as provided to -s. Column 2 is the group tp which the sample name belongs or " + 
+                        "the colour that the corresponding point will be",
                         type = argparse.FileType("r"))
+    parser.add_argument("--colour_labels",
+                        dest = "colour_labels",
+                        help = "Specify that the sample labels in the file provided with -cl are colours",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "--out_prefix",
                         dest = "output_dir",
@@ -238,7 +261,10 @@ if __name__ == "__main__":
             for column in distances[row]:
                 distances_out.write("," + str(column))
             distances_out.write("\n")
+    
+    #Extract the colours from the colour file if present
+    colourDict, cConversion = getColourDict(args.colour_file)
 
-    plotMDS(distances, sampleNames, args.colour_file, args.output_dir)
+    #plotMDS(distances, sampleNames, colourDict, args.output_dir)
 
-    plotUMAP(distances, args.output_dir)
+    plotUMAP(distances, cConversion, args.output_dir)
