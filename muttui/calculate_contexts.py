@@ -2,8 +2,7 @@
 
 import argparse
 from Bio import SeqIO
-from collections import OrderedDict
-from plot_spectrum import convertSpectrumProportions
+from collections import OrderedDict, Counter
 
 #Creates a dictionary of contexts
 def getContextDict():
@@ -54,13 +53,18 @@ def calculateContexts(sequence, rna):
         withRC["TC"] = contexts["TC"] + contexts["GA"]
         withRC["TG"] = contexts["TG"] + contexts["CA"]
         withRC["TT"] = contexts["TT"] + contexts["AA"]
-        sP = convertSpectrumProportions(withRC)
+        return(withRC)
     else:
-        sP = convertSpectrumProportions(contexts)
-    
-    return(sP)
-    
-    #print(contexts)
+        return(contexts)
+
+#Calculates the number of GC and AT bases in a given sequence
+def getGC(sequence):
+    n = Counter(sequence)
+
+    gc = n["C"] + n["G"]
+    at = n["A"] + n["T"]
+
+    return(gc, at)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -86,12 +90,18 @@ if __name__ == "__main__":
     #Extract all of the contexts from the given sequence
     for record in SeqIO.parse(args.sequence, "fasta"):
         contexts = calculateContexts(record.seq.upper(), args.rna)
+        gc, at = getGC(record.seq.upper())
     
     outFile = open(args.outFile, "w")
-    outFile.write("Context,Proportion\n")
+    outFile.write("Context,Count\n")
 
     #Write the contexts
     for c in contexts:
         outFile.write(c + "," + str(contexts[c]) + "\n")
+    
+    #Print the GC content
+    print("Number of GC nucleotides: ", gc)
+    print("Number of AT nucleotides: ", at)
+    print("Proportion of GC: ", float(gc)/(float(gc) + float(at)))
 
     outFile.close()
