@@ -2,9 +2,10 @@
 #The relative height of each peak in the spectrum will be scaled by the proportion of the context in the given file
 
 import argparse
+from collections import OrderedDict
+from Bio import SeqIO
 from plot_spectrum import convertSpectrumDict
-from reconstruct_spectrum import mutationTypeCount, getMutationDict, getRNADict
-from calculate_contexts import *
+from reconstruct_spectrum import getMutationDict, getRNADict, complement
 
 #Removes the brackets and > from spectrum keys
 def convertSpectrumKeys(spectrum):
@@ -15,25 +16,61 @@ def convertSpectrumKeys(spectrum):
 
     return(s)
 
-#Sums the contextual scalars for each mutaition type
-def getMutationScalars(spectrum, contexts):
-    #Mutation types as keys, total scalar as values
-    scalars = dict()
+#Creates an empty dictionary of triplets
+def getTripletDict():
+    tripletDict = OrderedDict()
+    tripletDict["ACA"] = 0
+    tripletDict["ACC"] = 0
+    tripletDict["ACG"] = 0
+    tripletDict["ACT"] = 0
+    tripletDict["CCA"] = 0
+    tripletDict["CCC"] = 0
+    tripletDict["CCG"] = 0
+    tripletDict["CCT"] = 0
+    tripletDict["GCA"] = 0
+    tripletDict["GCC"] = 0
+    tripletDict["GCG"] = 0
+    tripletDict["GCT"] = 0
+    tripletDict["TCA"] = 0
+    tripletDict["TCC"] = 0
+    tripletDict["TCG"] = 0
+    tripletDict["TCT"] = 0
+    tripletDict["ATA"] = 0
+    tripletDict["ATC"] = 0
+    tripletDict["ATG"] = 0
+    tripletDict["ATT"] = 0
+    tripletDict["CTA"] = 0
+    tripletDict["CTC"] = 0
+    tripletDict["CTG"] = 0
+    tripletDict["CTT"] = 0
+    tripletDict["GTA"] = 0
+    tripletDict["GTC"] = 0
+    tripletDict["GTG"] = 0
+    tripletDict["GTT"] = 0
+    tripletDict["TTA"] = 0
+    tripletDict["TTC"] = 0
+    tripletDict["TTG"] = 0
+    tripletDict["TTT"] = 0
 
-    #Iterate through the mutations in the spectrum and add to scalars
-    for m in spectrum:
-        mutation = m[1:3]
+    return(tripletDict)
 
-        if mutation not in scalars:
-            scalars[mutation] = float(0)
-        
-        scalars[mutation] += float(spectrum[m])/float(contexts[m[0] + m[3]])
+#Calculates the number of each triplet in a given sequence
+def calculateContexts(sequence, rna):
+    tripletDict = getTripletDict()
 
-    return(scalars)
-
-#Rescales a mutation count by the number of contexts and, the total mutations of that type and the GC content
-def rescaleMutation(x, c, s, tm, g):
-    return(round(((x/c)/s) * tm * g))
+    for i in range(len(sequence) - 2):
+        t = sequence[i:(i+3)]
+        if t in tripletDict:
+            tripletDict[t] += 1
+        else:
+            tripletDict[complement(t[2]) + complement(t[1]) + complement(t[0])] += 1
+    
+    #Add the reverse complement contexts from the reverse strand if the sequence is DNA
+    if not rna:
+        for c in tripletDict:
+            tripletDict[c] = tripletDict[c] * 2
+    
+    return(tripletDict)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -43,24 +80,17 @@ if __name__ == "__main__":
                         required = True,
                         help = "Mutational spectrum to be rescaled",
                         type = argparse.FileType("r"))
-    
-    sContext = parser.add_mutually_exclusive_group(required = True)
-    sContext.add_argument("-c",
-                        "--contexts",
-                        dest = "contexts",
-                        help = "File containing context proportions to use for the rescaling. Can be created using " + 
-                        "calculate_contexts.py",
-                        type = argparse.FileType("r"))
-    sContext.add_argument("-r",
+    parser.add_argument("-r",
                         "--reference",
                         dest = "reference",
                         help = "Fasta format sequence to be examined. This should be a single sequence",
                         type = argparse.FileType("r"))
-    
-    parser.add_argument("-gc",
-                        dest = "gc",
-                        help = "GC content of the genome. Required if using -c, not required if using -r",
-                        default = False)
+    parser.add_argument("-f",
+                        "--scale_factor",
+                        dest = "scale_factor",
+                        help = "The scalar each mutation/context will be multiplied by to obtain a rescaled mutation count, default 1,000,000. " + 
+                        "This may need to be increased if the number of mutations is very small compared to the genome length",
+                        default = "1000000")
     parser.add_argument("--rna",
                         dest = "rna",
                         help = "Specify if using an RNA pathogen, if specified the contexts will not include reverse complements",
@@ -74,41 +104,15 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    #Check if no GC content is provided when providing contexts
-    if args.contexts and not args.gc:
-        raise RuntimeError("The proportion GC needs to be provided with -gc when using -c")
-
     #Import the spectrum and convert to a dictionary
     spectrum = convertSpectrumDict(args.spectrum)
 
     #Update spectrum keys
     spectrum = convertSpectrumKeys(spectrum)
 
-    #Calculate the number of each mutation type
-    mt = mutationTypeCount(spectrum, args.rna)
-
-    if args.contexts:
-        #Import the contexts and extract to dictionary
-        contexts = dict()
-        with open(args.contexts.name) as fileobject:
-            next(fileobject)
-            for line in fileobject:
-                contexts[line.strip().split(",")[0]] = line.strip().split(",")[1]
-        gc = float(args.gc)
-        at = 1 - gc
-    #Extract the contexts and GC content from the provided reference
-    else:
-        for record in SeqIO.parse(args.reference, "fasta"):
-            contexts = calculateContexts(record.seq.upper(), args.rna)
-            gcC, atC = getGC(record.seq.upper())
-            gc = float(gcC)/(float(gcC) + float(atC))
-            at = float(atC)/(float(gcC) + float(atC))
-    
-    #Sum the contextual scalars for each mutation
-    mtScalars = getMutationScalars(spectrum, contexts)
-
-    #Scalar for mutations starting with AT nucleotides
-    atScalar = {"C":float(1), "G":float(1), "A":gc/at, "T":gc/at}
+    #Extract all triplet contexts from the reference
+    for record in SeqIO.parse(args.reference, "fasta"):
+        contexts = calculateContexts(record.seq.upper(), args.rna)
 
     #Will be filled with the rescaled spectrum
     if args.rna:
@@ -116,13 +120,17 @@ if __name__ == "__main__":
     else:
         rescaledSpectrum = getMutationDict()
     
+    #The scalar each mutation/context will be multiplied by to obtain a rescaled mutation count
+    scalar = float(args.scale_factor)
+
     #Iterate through the contextual mutations, scale their counts and add to rescaledSpectrum
     for m in spectrum:
-        rescaledSpectrum[m] = rescaleMutation(float(spectrum[m]), float(contexts[m[0] + m[3]]), mtScalars[m[1] + m[2]], float(mt[m[1] + m[2]]), atScalar[m[1]])
+        rescaledSpectrum[m] = round((spectrum[m]/contexts[m[0] + m[1] + m[3]]) * scalar)
     
     outFile = open(args.outFile, "w")
     outFile.write("Substitution,Number_of_mutations\n")
 
+    #Write the rescaled spectrum
     for eachMutation in rescaledSpectrum:
         outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
 
