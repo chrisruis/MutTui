@@ -58,12 +58,15 @@ def getTripletDict():
 def calculateContexts(sequence, rna):
     tripletDict = getTripletDict()
 
+    nucleotides = ["A", "C", "G", "T"]
+
     for i in range(len(sequence) - 2):
         t = sequence[i:(i+3)]
-        if t in tripletDict:
-            tripletDict[t] += 1
-        else:
-            tripletDict[complement(t[2]) + complement(t[1]) + complement(t[0])] += 1
+        if (t[0] in nucleotides) and (t[1] in nucleotides) and (t[2] in nucleotides):
+            if t in tripletDict:
+                tripletDict[t] += 1
+            else:
+                tripletDict[complement(t[2]) + complement(t[1]) + complement(t[0])] += 1
     
     #Add the reverse complement contexts from the reverse strand if the sequence is DNA
     if not rna:
