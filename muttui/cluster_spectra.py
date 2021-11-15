@@ -5,15 +5,43 @@
 
 import os
 import argparse
-from math import sqrt, log2
+from math import dist, sqrt, log2
 import numpy as np
 from scipy import spatial
 from sklearn import manifold
 import umap
 import umap.plot
 from matplotlib import pyplot as plt
-from plot_spectrum import convertSpectrumDict
-from compare_spectra import convertSpectrumProportions
+from plot_spectrum import convertSpectrumDict, convertSpectrumProportions
+#from compare_spectra import convertSpectrumProportions
+
+#Converts a set of spectra into a list of dictionaries
+def convertSpectraList(spectra, labels):
+    #List of spectra dictionaries
+    spectraList = [{} for i in range(len(spectra))]
+
+    #List of spectra lists
+    sL = [[] for i in range(len(spectra))]
+
+    #Iterate through the spectra, convert to proportions and add to spectraList
+    for i, spectrum in enumerate(spectra):
+        if labels:
+            sampleNames.append(labels[i])
+        else:
+            sampleNames.append(spectrum.name)
+        
+        #Calculate the total number of mutations in the spectrum
+        totalMutations = 0
+        mD = convertSpectrumDict(spectrum)
+        for m in mD:
+            totalMutations += mD[m]
+        
+        #Calculate the proportion of each mutation and add to spectraList and sL
+        for m in mD:
+            spectraList[i][m] = float(mD[m])/float(totalMutations)
+            sL[i].append(float(mD[m])/float(totalMutations))
+    
+    return(spectraList, sL, sampleNames)
 
 #Converts a multi-sample catalog into a list of dictionaries
 def convertCatalog(catalogFile):
@@ -23,7 +51,11 @@ def convertCatalog(catalogFile):
 
     totalMutations = [0] * len(sampleNames)
 
+    #List of spectra dictionaries
     spectraList = [{} for i in range(len(sampleNames))]
+
+    #List of spectra lists
+    sL = [[] for i in range(len(sampleNames))]
 
     #Calculate the number of mutations in each sample
     for row in catalog[1:]:
@@ -34,8 +66,9 @@ def convertCatalog(catalogFile):
     for row in catalog[1:]:
         for sample in range(len(sampleNames)):
             spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])/float(totalMutations[sample])
+            sL[sample].append(float(row.strip().split(",")[sample + 1])/float(totalMutations[sample]))
     
-    return(spectraList, sampleNames)
+    return(spectraList, sL, sampleNames)
 
 #Converts a given colouring file to a dictionary with files as keys and colours as values and
 #an array of colours for umap
@@ -156,6 +189,37 @@ def plotUMAP(distances, colours, output_dir):
 
     umapFig.figure.savefig(output_dir + "sample_umap.pdf")
 
+#Calculates a UMAP embedding for a set of spectra
+def extractUMAP(sL, labels, colours, output_dir):
+    #Convert to array
+    sL = np.asarray(sL)
+
+    reducer = umap.UMAP()
+
+    embedding = reducer.fit_transform(sL)
+
+    #Write the sample coordinates
+    out_coordinates = open(output_dir + "sample_umap_coordinates.csv", "w")
+    out_coordinates.write("Sample,x_coordinate,y_coordinate\n")
+    for l in range(len(embedding)):
+        out_coordinates.write(labels[l] + "," + str(embedding[l][0]) + "," + str(embedding[l][1]) + "\n")
+    out_coordinates.close()
+
+    fig = plt.figure()
+    plt.scatter(embedding[:, 0], embedding[:, 1])
+    plt.gca().set_aspect("equal", "datalim")
+    fig.savefig(output_dir + "test.pdf")
+
+    distanceMap = umap.UMAP().fit(sL)
+    if colours is not None:
+        labels = np.array(colours)
+        print(labels)
+        umapFig = umap.plot.points(distanceMap, labels = labels)
+    else:
+        umapFig = umap.plot.points(distanceMap)
+    
+    umapFig.figure.savefig(output_dir + "sample_umap.pdf")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -192,7 +256,7 @@ if __name__ == "__main__":
                         "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
                         "name of the sample. If providing labels with -l, these names should match the labels. If " +
                         "using a catalog, these names should match the column names. If using file paths, these names should " +
-                        "match the file paths, as provided to -s. Column 2 is the group tp which the sample name belongs or " + 
+                        "match the file paths, as provided to -s. Column 2 is the group to which the sample name belongs or " + 
                         "the colour that the corresponding point will be",
                         type = argparse.FileType("r"))
     parser.add_argument("--colour_labels",
@@ -216,23 +280,15 @@ if __name__ == "__main__":
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
-    #List of spectra
-    spectraList = []
-
     #Names of spectra to be output
     sampleNames = []
 
+    #If multiple spectra are provided, extract these to lists
     if args.spectra:
-        #Extract the spectra into spectraList
-        for i, spectrum in enumerate(args.spectra):
-            if args.labels:
-                sampleNames.append(args.labels[i])
-            else:
-                sampleNames.append(spectrum.name)
-            spectraList.append(convertSpectrumProportions(convertSpectrumDict(spectrum)))
+        spectraList, sL, sampleNames = convertSpectraList(args.spectra, args.labels)
     else:
         #Extract the catalog into spectraList
-        spectraList, sampleNames = convertCatalog(args.catalog)
+        spectraList, sL, sampleNames = convertCatalog(args.catalog)
     
     #Calculate distances between all pairs of spectra
     distances = getDistanceMatrix(spectraList)
@@ -267,4 +323,6 @@ if __name__ == "__main__":
 
     #plotMDS(distances, sampleNames, colourDict, args.output_dir)
 
-    plotUMAP(distances, cConversion, args.output_dir)
+    #plotUMAP(distances, cConversion, args.output_dir)
+
+    extractUMAP(sL, sampleNames, cConversion, args.output_dir)

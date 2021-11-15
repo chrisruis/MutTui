@@ -7,17 +7,31 @@ import argparse
 from reconstruct_spectrum import getMutationDict
 from plot_spectrum import *
 
-#Converts a given spectrum from number of mutations to proportion of mutations
-def convertSpectrumProportions(spectrum):
-    totalMutations = float(0)
+#Converts a given spectrum from number of mutations to proportion of mutations and returns the spectrum as a dictionary
+#def convertSpectrumProportions(spectrum):
+#    totalMutations = float(0)
+#
+#    for mutation in spectrum:
+#        totalMutations += float(spectrum[mutation])
+#    
+#    for eachMutation in spectrum:
+#        spectrum[eachMutation] = float(spectrum[eachMutation])/totalMutations
+#       
+#    return(spectrum)
 
-    for mutation in spectrum:
-        totalMutations += float(spectrum[mutation])
-    
-    for eachMutation in spectrum:
-        spectrum[eachMutation] = float(spectrum[eachMutation])/totalMutations
-    
-    return(spectrum)
+#Converts a given spectrum from number of mutations to proportion of mutations and returns a list of proportions
+#def convertSpectrumProportions(spectrum):
+#    totalMutations = float(0)
+#
+#    for mutation in spectrum:
+#        totalMutations += float(spectrum[mutation])
+#    
+#    sL = list()
+#    
+#    for eachMutation in spectrum:
+#        sL.append(float(spectrum[eachMutation])/totalMutations)
+#    
+#    return(sL)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -27,7 +27,7 @@ def convertSpectrumFormat(spectrum):
     
     return(spectrumDict)
 
-#Converts a given spectrum from number of mutations to proportion of mutations
+#Converts a given spectrum from number of mutations to proportion of mutations and returns the spectrum as a dictionary
 def convertSpectrumProportions(spectrum):
     totalMutations = float(0)
 
