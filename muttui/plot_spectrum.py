@@ -17,6 +17,17 @@ def convertSpectrumDict(spectrumFile):
     
     return(spectrumDict)
 
+#Converts an input spectrum of proportions from a csv file to a dictionary
+def convertSpectrumDictProportions(spectrumFile):
+    spectrum = open(spectrumFile.name).readlines()
+
+    spectrumDict = {}
+
+    for mutation in spectrum[1:]:
+        spectrumDict[mutation.strip().split(",")[0]] = float(mutation.strip().split(",")[1])
+    
+    return(spectrumDict)
+
 #Converts a spectrum to the required format from plotting
 #Converts from format ACAA to A[C>A]A
 def convertSpectrumFormat(spectrum):

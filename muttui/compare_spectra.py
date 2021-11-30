@@ -44,6 +44,12 @@ if __name__ == "__main__":
                         help = "The 2 spectra that will be compared. The second provided spectrum will be " + 
                         "subtracted from the first. Provide both spectra to -s separated by a space",
                         type = argparse.FileType("r"))
+    parser.add_argument("--proportions",
+                        dest = "proportions",
+                        help = "Specify if the spectra to be compared are proportions rather than numbers of mutations, " + 
+                        "e.g. if comparing SigProfilerExtractor signatures",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "--out",
                         dest = "out_prefix",
@@ -52,13 +58,16 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    #Extract the spectra to dictionaries
-    spectrum1 = convertSpectrumDict(args.spectra[0])
-    spectrum2 = convertSpectrumDict(args.spectra[1])
-
-    #Convert the spectra to proportions of each mutation
-    spectrum1Proportions = convertSpectrumProportions(spectrum1)
-    spectrum2Proportions = convertSpectrumProportions(spectrum2)
+    #Import the spectra into dictionaries
+    if args.proportions:
+        spectrum1Proportions = convertSpectrumDictProportions(args.spectra[0])
+        spectrum2Proportions = convertSpectrumDictProportions(args.spectra[1])
+    else:
+        spectrum1 = convertSpectrumDict(args.spectra[0])
+        spectrum2 = convertSpectrumDict(args.spectra[1])
+        #Convert the spectra to proportions
+        spectrum1Proportions = convertSpectrumProportions(spectrum1)
+        spectrum2Proportions = convertSpectrumProportions(spectrum2)
 
     #Will be filled with the difference between each mutation type
     spectrumDifference = {}

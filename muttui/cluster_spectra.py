@@ -124,14 +124,14 @@ def getZerosMatrix(nSamples):
     return(dist_mat)
 
 #Calculates a distance matrix between all pairs of spectra
-def getDistanceMatrix(spectraList):
+def getDistanceMatrix(spectraList, method):
     #Distance matrix of zeros
     distances = getZerosMatrix(len(spectraList))
 
     #Iterate through the pairs of spectra and calculate their distance
     for spectrum1 in range(len(spectraList) - 1):
         for spectrum2 in range((spectrum1 + 1), len(spectraList)):
-            distances[spectrum1, spectrum2] = calculateSpectraDistance(spectraList[spectrum1], spectraList[spectrum2], args.method)
+            distances[spectrum1, spectrum2] = calculateSpectraDistance(spectraList[spectrum1], spectraList[spectrum2], method)
             distances[spectrum2, spectrum1] = distances[spectrum1, spectrum2]
     
     return(distances)
@@ -179,7 +179,7 @@ def plotMDS(distances, file_names, colourDict, output_dir):
 
 #UMAP clustering and plotting
 def plotUMAP(distances, colours, output_dir):
-    distanceMap = umap.UMAP().fit(distances)
+    distanceMap = umap.UMAP(n_neighbors = 5, metric = "cosine").fit(distances)
 
     if colours is not None:
         labels = np.array(colours)
@@ -213,7 +213,6 @@ def extractUMAP(sL, labels, colours, output_dir):
     distanceMap = umap.UMAP().fit(sL)
     if colours is not None:
         labels = np.array(colours)
-        print(labels)
         umapFig = umap.plot.points(distanceMap, labels = labels)
     else:
         umapFig = umap.plot.points(distanceMap)
@@ -291,7 +290,7 @@ if __name__ == "__main__":
         spectraList, sL, sampleNames = convertCatalog(args.catalog)
     
     #Calculate distances between all pairs of spectra
-    distances = getDistanceMatrix(spectraList)
+    distances = getDistanceMatrix(spectraList, args.method)
 
     #Write cosine similarity if using cosine method
     if args.method == "cosine":
@@ -305,6 +304,7 @@ if __name__ == "__main__":
             for column in distances[row]:
                 similarity_out.write("," + str(1 - column))
             similarity_out.write("\n")
+        similarity_out.close()
 
     #Write distances
     with open(args.output_dir + "sample_distances.csv", "w") as distances_out:
@@ -317,12 +317,13 @@ if __name__ == "__main__":
             for column in distances[row]:
                 distances_out.write("," + str(column))
             distances_out.write("\n")
+        distances_out.close()
     
     #Extract the colours from the colour file if present
     colourDict, cConversion = getColourDict(args.colour_file)
 
-    #plotMDS(distances, sampleNames, colourDict, args.output_dir)
+    plotMDS(distances, sampleNames, colourDict, args.output_dir)
 
-    #plotUMAP(distances, cConversion, args.output_dir)
+    plotUMAP(distances, cConversion, args.output_dir)
 
-    extractUMAP(sL, sampleNames, cConversion, args.output_dir)
+    #extractUMAP(sL, sampleNames, cConversion, args.output_dir)
