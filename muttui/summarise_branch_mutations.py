@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     #Open output files
     outFile = open(args.outfile + ".csv", "w")
-    outFile.write("Branch,Branch_length,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
+    outFile.write("Branch,Branch_depth,Branch_length,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
     outFile_tree = open(args.outfile + "_temp.nex", "w")
     outFile_tree_2 = open(args.outfile + ".nex", "w")
 
@@ -193,6 +193,8 @@ if __name__ == "__main__":
 
     #Import the tree
     tree = Phylo.read(args.tree.name, "nexus")
+    #Extract tree depths
+    nodeDepths = extractDepths(tree)
     #Extract tree branch lengths
     branchLengths = extractBLs(tree)
 
@@ -219,7 +221,7 @@ if __name__ == "__main__":
     
     #Write the mutations on each branch
     for branch in bM:
-        outFile.write(branch + "," + str(branchLengths[branch]) + "," + str(bM[branch]) + ",")
+        outFile.write(branch + "," + str(nodeDepths[branch]) + "," + str(branchLengths[branch]) + "," + str(bM[branch]) + ",")
         tM = float(bM[branch])
 
         for mt in mutationTypes:

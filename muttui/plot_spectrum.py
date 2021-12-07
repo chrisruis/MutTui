@@ -243,6 +243,12 @@ if __name__ == "__main__":
                         dest = "outFile",
                         required = True,
                         help = "Output PDF file to which spectrum will be written")
+    parser.add_argument("--proportions",
+                        dest = "proportions",
+                        help = "Specify if the spectrum to be plotted is proportions rather than numbers of mutations, " + 
+                        "e.g. if plotting SigProfilerExtractor signatures",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--types",
                         dest = "types",
                         help = "Specify to plot mutation types spectrum. Plotting a single base substitution " + 
@@ -260,20 +266,23 @@ if __name__ == "__main__":
                         help = "Specify if using an RNA pathogen, will plot an RNA mutational spectrum",
                         action = "store_true",
                         default = False)
-    parser.add_argument("--proportion",
-                        dest = "proportion",
+    parser.add_argument("--plot_proportion",
+                        dest = "plot_proportion",
                         help = "Specify to plot the spectrum as proportion of mutations rather than number of mutations",
                         action = "store_true",
                         default = False)
     
     args = parser.parse_args()
 
-    #Extract the spectrum to a dictionary with mutations as keys and counts as values
-    spectrum = convertSpectrumDict(args.spectrum_file)
+    #Extract the spectrum to a dictionary with mutations as keys and counts or proportions as values
+    if args.proportions:
+        spectrum = convertSpectrumDictProportions(args.spectrum_file)
+    else:
+        spectrum = convertSpectrumDict(args.spectrum_file)
 
     if args.types:
         plotMutationType(spectrum, args.outFile)
     elif args.double:
-        plotDouble(spectrum, args.proportion, args.outFile)
+        plotDouble(spectrum, args.plot_proportion, args.outFile)
     else:
         plotSpectrumFromDict(spectrum, args.outFile)

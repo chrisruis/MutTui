@@ -12,7 +12,7 @@ from sklearn import manifold
 import umap
 import umap.plot
 from matplotlib import pyplot as plt
-from plot_spectrum import convertSpectrumDict, convertSpectrumProportions
+from plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, convertSpectrumProportions
 #from compare_spectra import convertSpectrumProportions
 
 #Converts a set of spectra into a list of dictionaries
@@ -44,29 +44,32 @@ def convertSpectraList(spectra, labels):
     return(spectraList, sL, sampleNames)
 
 #Converts a multi-sample catalog into a list of dictionaries
-def convertCatalog(catalogFile):
+def convertCatalog(catalogFile, proportions):
     catalog = open(catalogFile.name).readlines()
 
     sampleNames = catalog[0].strip().split(",")[1:]
 
-    totalMutations = [0] * len(sampleNames)
-
     #List of spectra dictionaries
     spectraList = [{} for i in range(len(sampleNames))]
-
     #List of spectra lists
     sL = [[] for i in range(len(sampleNames))]
 
-    #Calculate the number of mutations in each sample
-    for row in catalog[1:]:
-        for sample in range(len(sampleNames)):
-            totalMutations[sample] += int(row.strip().split(",")[sample + 1])
+    #Calculate the total mutations in each sample if the spectra are not proportions
+    if not proportions:
+        totalMutations = [0] * len(sampleNames)
+        for row in catalog[1:]:
+            for sample in range(len(sampleNames)):
+                totalMutations[sample] += int(row.strip().split(",")[sample + 1])
     
     #Calculate the proportion of each mutation in each sample
     for row in catalog[1:]:
         for sample in range(len(sampleNames)):
-            spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])/float(totalMutations[sample])
-            sL[sample].append(float(row.strip().split(",")[sample + 1])/float(totalMutations[sample]))
+            if not proportions:
+                spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])/float(totalMutations[sample])
+                sL[sample].append(float(row.strip().split(",")[sample + 1])/float(totalMutations[sample]))
+            else:
+                spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])
+                sL[sample].append(float(row.strip().split(",")[sample + 1]))
     
     return(spectraList, sL, sampleNames)
 
@@ -263,6 +266,12 @@ if __name__ == "__main__":
                         help = "Specify that the sample labels in the file provided with -cl are colours",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--proportions",
+                        dest = "proportions",
+                        help = "Specify if the spectrum to be clustered are proportions rather than numbers of mutations, " + 
+                        "e.g. if comparing SigProfilerExtractor signatures",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "--out_prefix",
                         dest = "output_dir",
@@ -287,7 +296,7 @@ if __name__ == "__main__":
         spectraList, sL, sampleNames = convertSpectraList(args.spectra, args.labels)
     else:
         #Extract the catalog into spectraList
-        spectraList, sL, sampleNames = convertCatalog(args.catalog)
+        spectraList, sL, sampleNames = convertCatalog(args.catalog, args.proportions)
     
     #Calculate distances between all pairs of spectra
     distances = getDistanceMatrix(spectraList, args.method)
