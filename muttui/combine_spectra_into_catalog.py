@@ -6,7 +6,7 @@
 #Also outputs a file containing the column names in the combined catalog and the corresponding original spectrum
 
 import argparse
-from plot_spectrum import convertSpectrumDict
+from plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -33,6 +33,12 @@ if __name__ == "__main__":
                         help = "Optional labels to be given to spectra in the combined catalogue. Needs to have " + 
                         "one label for each spectrum provided with -s",
                         default = False)
+    parser.add_argument("--proportions",
+                        dest = "proportions",
+                        help = "Specify if the spectra are proportions rather than numbers of mutations, " + 
+                        "e.g. if using SigProfilerExtractor signatures",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "--outFile",
                         dest = "outFile",
@@ -54,7 +60,10 @@ if __name__ == "__main__":
 
     #Extract the spectra into spectraDict
     for spectrum in args.spectra:
-        spectraDict[spectrum.name] = convertSpectrumDict(spectrum)
+        if args.proportions:
+            spectraDict[spectrum.name] = convertSpectrumDictProportions(spectrum)
+        else:
+            spectraDict[spectrum.name] = convertSpectrumDict(spectrum)
     
     #Dictionary with sample names as keys and files as values
     sampleDict = {}

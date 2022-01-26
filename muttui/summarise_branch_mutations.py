@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     #Open output files
     outFile = open(args.outfile + ".csv", "w")
-    outFile.write("Branch,Branch_depth,Branch_length,Total_mutations,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
+    outFile.write("Branch,Branch_depth,Branch_length,Total_mutations,Transitions,Transversions,Tr_Tv_ratio,C>A,C>G,C>T,T>A,T>C,T>G,C>A_proportion,C>G_proportion,C>T_proportion,T>A_proportion,T>C_proportion,T>G_proportion\n")
     outFile_tree = open(args.outfile + "_temp.nex", "w")
     outFile_tree_2 = open(args.outfile + ".nex", "w")
 
@@ -200,6 +200,8 @@ if __name__ == "__main__":
 
     #The mutation types to be examined
     mutationTypes = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G"]
+    transitions = ["C>T", "T>C"]
+    transversions = ["C>A", "C>G", "T>A", "T>G"]
 
     #Iterate through the mutations and add to bM and bMT
     with open(args.mutations.name) as fileobject:
@@ -223,6 +225,22 @@ if __name__ == "__main__":
     for branch in bM:
         outFile.write(branch + "," + str(nodeDepths[branch]) + "," + str(branchLengths[branch]) + "," + str(bM[branch]) + ",")
         tM = float(bM[branch])
+
+        #Calculate transition/transversion ratio
+        tr = float(0)
+        tv = float(0)
+        for eM in transitions:
+            if (branch + ":" + eM) in bMT:
+                tr += float(bMT[branch + ":" + eM])
+        for eM in transversions:
+            if (branch + ":" + eM) in bMT:
+                tv += float(bMT[branch + ":" + eM])
+        
+        outFile.write(str(tr) + "," + str(tv) + ",")
+        if tv != float(0):
+            outFile.write(str(tr/tv) + ",")
+        else:
+            outFile.write("NA,")
 
         for mt in mutationTypes:
             if (branch + ":" + mt) in bMT:
