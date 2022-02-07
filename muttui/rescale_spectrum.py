@@ -2,7 +2,7 @@
 #The relative height of each peak in the spectrum will be scaled by the proportion of the context in the given file
 
 import argparse
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from Bio import SeqIO
 from plot_spectrum import convertSpectrumDict
 from reconstruct_spectrum import getMutationDict, getRNADict, complement
@@ -75,6 +75,57 @@ def calculateContexts(sequence, rna):
     
     return(tripletDict)
 
+#Rescales a SBS mutational spectrum
+def rescaleSBS(spectrum, reference, scalar, rna):
+    #Update spectrum keys
+    spectrum = convertSpectrumKeys(spectrum)
+
+    #Extract all triplet contexts from the reference
+    for record in SeqIO.parse(reference, "fasta"):
+        contexts = calculateContexts(record.seq.upper(), rna)
+    
+    #Will be filled with the rescaled spectrum
+    if args.rna:
+        rescaledSpectrum = getRNADict()
+    else:
+        rescaledSpectrum = getMutationDict()
+    
+    #Iterate through the contextual mutations, scale their counts and add to rescaledSpectrum
+    for m in spectrum:
+        rescaledSpectrum[m] = round((spectrum[m]/contexts[m[0] + m[1] + m[3]]) * scalar)
+
+    return(rescaledSpectrum)
+
+#Rescales a mutation type spectrum
+def rescaleMT(spectrum, reference, scalar, rna):
+    #Count the number of each nucleotide in the refernece, combine AT and GC if not rna
+    for record in SeqIO.parse(reference, "fasta"):
+        c = Counter(record.seq)
+    
+    conversion = dict()
+    if rna:
+        conversion["A"] = c["A"]
+        conversion["C"] = c["C"]
+        conversion["G"] = c["G"]
+        conversion["T"] = c["T"]
+    else:
+        conversion["A"] = c["A"] + c["T"]
+        conversion["C"] = c["C"] + c["G"]
+        conversion["G"] = c["C"] + c["G"]
+        conversion["T"] = c["A"] + c["T"]
+    
+    #Empty mutation type dicts
+    if rna:
+        rescaledSpectrum = {"AC": 0, "AG": 0, "AT": 0, "CA": 0, "CG": 0, "CT": 0, "GA": 0, "GC": 0, "GT": 0, "TA": 0, "TC": 0, "TG": 0}
+    else:
+        rescaledSpectrum = {"CA": 0, "CG": 0, "CT": 0, "TA": 0, "TC": 0, "TG": 0}
+    
+    #Rescale the mutations based on their original nucleotide
+    for m in spectrum:
+        rescaledSpectrum[m] = round((spectrum[m]/conversion[m[0]]) * scalar)
+    
+    return(rescaledSpectrum)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-s",
@@ -94,6 +145,12 @@ if __name__ == "__main__":
                         help = "The scalar each mutation/context will be multiplied by to obtain a rescaled mutation count, default 1,000,000. " + 
                         "This may need to be increased if the number of mutations is very small compared to the genome length",
                         default = "1000000")
+    parser.add_argument("--mutation_type",
+                        dest = "mt",
+                        help = "Specify if rescaling a spectrum of the 6 mutation types rather than a 96 bar spectrum of contextual mutations. The " + 
+                        "input spectrum will be rescaled by the number of each starting nucleotide in the genome",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--rna",
                         dest = "rna",
                         help = "Specify if using an RNA pathogen, if specified the contexts will not include reverse complements",
@@ -110,31 +167,22 @@ if __name__ == "__main__":
     #Import the spectrum and convert to a dictionary
     spectrum = convertSpectrumDict(args.spectrum)
 
-    #Update spectrum keys
-    spectrum = convertSpectrumKeys(spectrum)
-
-    #Extract all triplet contexts from the reference
-    for record in SeqIO.parse(args.reference, "fasta"):
-        contexts = calculateContexts(record.seq.upper(), args.rna)
-
-    #Will be filled with the rescaled spectrum
-    if args.rna:
-        rescaledSpectrum = getRNADict()
-    else:
-        rescaledSpectrum = getMutationDict()
-    
     #The scalar each mutation/context will be multiplied by to obtain a rescaled mutation count
     scalar = float(args.scale_factor)
 
-    #Iterate through the contextual mutations, scale their counts and add to rescaledSpectrum
-    for m in spectrum:
-        rescaledSpectrum[m] = round((spectrum[m]/contexts[m[0] + m[1] + m[3]]) * scalar)
-    
     outFile = open(args.outFile, "w")
     outFile.write("Substitution,Number_of_mutations\n")
 
-    #Write the rescaled spectrum
-    for eachMutation in rescaledSpectrum:
-        outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
+    if args.mt:
+        #Rescale the mutation type spectrum
+        rescaledSpectrum = rescaleMT(spectrum, args.reference, scalar, args.rna)
+        for eachMutation in rescaledSpectrum:
+            outFile.write(eachMutation + "," + str(rescaledSpectrum[eachMutation]) + "\n")
+    else:
+        #Rescale the SBS spectrum
+        rescaledSpectrum = rescaleSBS(spectrum, args.reference, scalar, args.rna)
+        #Write the rescaled spectrum
+        for eachMutation in rescaledSpectrum:
+            outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
 
     outFile.close()
