@@ -5,7 +5,7 @@ import argparse
 from collections import OrderedDict, Counter
 from Bio import SeqIO
 from plot_spectrum import convertSpectrumDict
-from reconstruct_spectrum import getMutationDict, getRNADict, complement
+from reconstruct_spectrum import getMutationDict, getRNADict, getDoubleSubstitutionDict, complement
 
 #Removes the brackets and > from spectrum keys
 def convertSpectrumKeys(spectrum):
@@ -14,6 +14,15 @@ def convertSpectrumKeys(spectrum):
     for k in spectrum:
         s[k[0] + k[2] + k[4] + k[6]] = spectrum[k]
 
+    return(s)
+
+#Removes the > from keys in a double substitution spectrum
+def convertDoubleKeys(spectrum):
+    s = dict()
+
+    for k in spectrum:
+        s[k[0] + k[1] + k[3] + k[4]] = spectrum[k]
+    
     return(s)
 
 #Creates an empty dictionary of triplets
@@ -75,6 +84,10 @@ def calculateContexts(sequence, rna):
     
     return(tripletDict)
 
+#Calculates the number of each dinucleotide in a given sequence
+def calculateDinucleotides(sequence):
+    print(sequence)
+
 #Rescales a SBS mutational spectrum
 def rescaleSBS(spectrum, reference, scalar, rna):
     #Update spectrum keys
@@ -126,6 +139,17 @@ def rescaleMT(spectrum, reference, scalar, rna):
     
     return(rescaledSpectrum)
 
+#Rescales a double substitution spectrum
+def rescaleDouble(spectrum, reference, scalar, rna):
+    #Convert spectrum keys
+    spectrum = convertDoubleKeys(spectrum)
+
+    #Count dinucleotide pairs in reference
+    for sequence in SeqIO.parse(reference, "fasta"):
+        calculateDinucleotides(sequence.seq)
+
+    rescaledSpectrum = getDoubleSubstitutionDict()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-s",
@@ -149,6 +173,12 @@ if __name__ == "__main__":
                         dest = "mt",
                         help = "Specify if rescaling a spectrum of the 6 mutation types rather than a 96 bar spectrum of contextual mutations. The " + 
                         "input spectrum will be rescaled by the number of each starting nucleotide in the genome",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("--double",
+                        dest = "double",
+                        help = "Specify if rescaling a double substitution spectrum rather than a 96 bar spectrum of contextual mutations. The " + 
+                        "input spectrum will be rescaled by the number of each dinucleotide pair in the genome",
                         action = "store_true",
                         default = False)
     parser.add_argument("--rna",
@@ -178,6 +208,8 @@ if __name__ == "__main__":
         rescaledSpectrum = rescaleMT(spectrum, args.reference, scalar, args.rna)
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation + "," + str(rescaledSpectrum[eachMutation]) + "\n")
+    elif args.double:
+        rescaleDouble(spectrum, args.reference, scalar, args.rna)
     else:
         #Rescale the SBS spectrum
         rescaledSpectrum = rescaleSBS(spectrum, args.reference, scalar, args.rna)
