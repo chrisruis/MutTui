@@ -3,6 +3,7 @@
 
 import argparse
 from collections import OrderedDict, Counter
+from tkinter import dnd
 from Bio import SeqIO
 from plot_spectrum import convertSpectrumDict
 from reconstruct_spectrum import getMutationDict, getRNADict, getDoubleSubstitutionDict, complement
@@ -63,6 +64,22 @@ def getTripletDict():
 
     return(tripletDict)
 
+#Creates an empty dictionary of dinucleotides
+def getDinucleotideDict():
+    dnDict = OrderedDict()
+    dnDict["AA"] = 0
+    dnDict["AC"] = 0
+    dnDict["AG"] = 0
+    dnDict["AT"] = 0
+    dnDict["CA"] = 0
+    dnDict["CC"] = 0
+    dnDict["CG"] = 0
+    dnDict["GA"] = 0
+    dnDict["GC"] = 0
+    dnDict["TA"] = 0
+
+    return(dnDict)
+
 #Calculates the number of each triplet in a given sequence
 def calculateContexts(sequence, rna):
     tripletDict = getTripletDict()
@@ -85,8 +102,21 @@ def calculateContexts(sequence, rna):
     return(tripletDict)
 
 #Calculates the number of each dinucleotide in a given sequence
-def calculateDinucleotides(sequence):
-    print(sequence)
+def calculateDinucleotides(sequence, rna):
+    dnDict = getDinucleotideDict()
+
+    for i in range(len(sequence) - 1):
+        if (sequence[i] + sequence[i + 1]) in dnDict:
+            dnDict[sequence[i] + sequence[i + 1]] += 1
+        else:
+            dnDict[complement(sequence[i + 1]) + complement(sequence[i])] += 1
+    
+    #Add the reverse complement contexts from the reverse strand if the sequence is DNA
+    if not rna:
+        for c in dnDict:
+            dnDict[c] = dnDict[c] * 2
+    
+    return(dnDict)
 
 #Rescales a SBS mutational spectrum
 def rescaleSBS(spectrum, reference, scalar, rna):
@@ -146,9 +176,16 @@ def rescaleDouble(spectrum, reference, scalar, rna):
 
     #Count dinucleotide pairs in reference
     for sequence in SeqIO.parse(reference, "fasta"):
-        calculateDinucleotides(sequence.seq)
+        dn = calculateDinucleotides(sequence.seq, rna)
 
+    #Empty DBS dict
     rescaledSpectrum = getDoubleSubstitutionDict()
+
+    #Iterate through the mutations and rescale by their starting context availability
+    for m in spectrum:
+        rescaledSpectrum[m] = round((spectrum[m]/dn[m[0] + m[1]]) * scalar)
+    
+    return(rescaledSpectrum)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -209,7 +246,9 @@ if __name__ == "__main__":
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation + "," + str(rescaledSpectrum[eachMutation]) + "\n")
     elif args.double:
-        rescaleDouble(spectrum, args.reference, scalar, args.rna)
+        rescaledSpectrum = rescaleDouble(spectrum, args.reference, scalar, args.rna)
+        for eachMutation in rescaledSpectrum:
+            outFile.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
     else:
         #Rescale the SBS spectrum
         rescaledSpectrum = rescaleSBS(spectrum, args.reference, scalar, args.rna)
