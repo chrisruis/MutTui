@@ -34,7 +34,8 @@ if __name__ == "__main__":
                         dest = "labels",
                         required = True,
                         help = "csv file used to split mutations into categories. This should have 2 columns: column 1 " + 
-                        "is the branch name as it appears in all_included_mutations.csv and column 2 is its label",
+                        "is the branch name as it appears in all_included_mutations.csv and column 2 is its label. Column 1 need the " + 
+                        "heading branch and column 2 needs the heading label ",
                         type = argparse.FileType("r"))
     parser.add_argument("-o",
                         "--out_dir",
@@ -50,15 +51,21 @@ if __name__ == "__main__":
     #Import branch labels and extract to dictionary
     labels = getLabels(args.labels)
 
-    #Generate an empty spectrum for each label
+    #Generate an empty spectrum and mutation dictionary for each label
     spectraDict = dict()
+    allMDict = dict()
     for label in set(labels.values()):
         spectraDict[label] = getMutationDict()
+        allMDict[label] = list()
     
     #Iterate through the mutations and add to the respective spectrum
     mutations = pd.read_csv(args.mutations.name)
     for i in range(mutations.shape[0]):
-        spectraDict[labels[mutations["Branch"][i]]][mutations["Substitution"][i].replace("[", "").replace(">", "").replace("]", "")] += 1
+        branch = mutations["Branch"][i]
+        if branch in labels:
+            bL = labels[branch]
+            spectraDict[bL][mutations["Substitution"][i].replace("[", "").replace(">", "").replace("]", "")] += 1
+            allMDict[bL].append([mutations["Mutation_in_alignment"][i], mutations["Mutation_in_genome"][i], mutations["Substitution"][i], mutations["Branch"][i]])
     
     #Write and plot the spectra
     for eachLabel in spectraDict:
@@ -73,3 +80,10 @@ if __name__ == "__main__":
         spectrumFormat = convertSpectrumFormat(spectraDict[eachLabel])
         plotSpectrumFromDict(spectrumFormat, outSpectrum)
         outSpectrum.close()
+    
+        #Write the mutations in each label
+        outMutation = open(args.output_dir + "all_included_mutations_label_" + eachLabel + ".csv", "w")
+        outMutation.write("Mutation_in_alignment,Mutation_in_genome,Substitution,Branch\n")
+        for eM in allMDict[eachLabel]:
+            outMutation.write(",".join(eM) + "\n")
+        outMutation.close()

@@ -143,7 +143,7 @@ def rescaleSBS(spectrum, reference, scalar, rna):
 def rescaleMT(spectrum, reference, scalar, rna):
     #Count the number of each nucleotide in the refernece, combine AT and GC if not rna
     for record in SeqIO.parse(reference, "fasta"):
-        c = Counter(record.seq)
+        c = Counter(record.seq.upper())
     
     conversion = dict()
     if rna:

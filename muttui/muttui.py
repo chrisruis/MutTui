@@ -293,6 +293,7 @@ def main():
     else:
         branchMutationDict = getBranchMutationDict(args.treetime_out + "branch_mutations.txt", positionTranslation)
 
+    print(branchMutationDict)
     #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
     #and the root sequence from the ancestral reconstruction is used
     referenceSequence = getReference(args.reference, args.all_sites, alignment, positionTranslation)
