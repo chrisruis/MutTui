@@ -16,7 +16,7 @@ from plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, c
 #from compare_spectra import convertSpectrumProportions
 
 #Converts a set of spectra into a list of dictionaries
-def convertSpectraList(spectra, labels):
+def convertSpectraList(spectra, labels, proportions):
     #List of spectra dictionaries
     spectraList = [{} for i in range(len(spectra))]
 
@@ -32,7 +32,7 @@ def convertSpectraList(spectra, labels):
         
         #Calculate the total number of mutations in the spectrum
         totalMutations = 0
-        mD = convertSpectrumDict(spectrum)
+        mD = convertSpectrumDictProportions(spectrum)
         for m in mD:
             totalMutations += mD[m]
         
@@ -293,7 +293,7 @@ if __name__ == "__main__":
 
     #If multiple spectra are provided, extract these to lists
     if args.spectra:
-        spectraList, sL, sampleNames = convertSpectraList(args.spectra, args.labels)
+        spectraList, sL, sampleNames = convertSpectraList(args.spectra, args.labels, args.proportions)
     else:
         #Extract the catalog into spectraList
         spectraList, sL, sampleNames = convertCatalog(args.catalog, args.proportions)

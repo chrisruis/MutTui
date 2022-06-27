@@ -6,7 +6,7 @@ To calculate the mutational spectrum of an input alignment and tree run:
 
 ```
 mkdir muttui_out
-python3 muttui.py -a alignment.fasta -t tree.nwk -r reference_genome.fasta -c alignment_to_genome_position.txt -o muttui_out
+python3 muttui.py -a alignment.fasta -t tree.nwk -r reference_genome.fasta -c conversion.txt -o muttui_out
 ```
 
 ## Labelling your tree
