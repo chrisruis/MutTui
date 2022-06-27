@@ -1,10 +1,12 @@
-### Why label your tree?
+## Why label your tree?
 
-Mutational spectra contain the history of contextual mutations within a given dataset. A single mutational spectrum can be very informative and be used to infer some of the underlying mutagenic and repair processes that have contributed to a mutational history. In its default mode, MutTui calculates a single mutational spectrum across the entire provided tree.
+Mutational spectra contain the history of contextual mutations within a given dataset. A single mutational spectrum can be very informative but it's often useful to compare mutational spectra between different phylogenetic groups, for example to investigate the mutagens or repair processes that are operating differently between them
 
-Its often very useful to compare mutational spectra between different parts of a pathogen's evolutionary history. This can be used to infer the mutagenic processes and repair mechanisms acting in different groups of pathogens and therefore identify processes that are active in some groups but not in others. To compare mutational spectra between groups, you can run MutTui separately on the two or more groups and then compare the calculated spectra. This is the best strategy if you're comparing two groups of pathogens that are relatively distantly related, for example different genotypes or sequence types within a species.
+We can compare mutational spectra with MutTui in 2 ways:
+1) Calculate spectra in separate MutTui runs and then compare - use this if the different groups can't be combined into a single phylogenetic tree
+2) Label the tree to calculate the spectra of different groups separately in a single MutTui run - use this if the different groups are in the same phylogenetic tree
 
-However, you might want to compare closely related clades, including in situations where one clade is nested within the diversity of another. In these cases, you can obtain the mutational spectra of the multiple clades in a single MutTui run by labelling your phylogenetic tree.
+If you want to use option 1), you can run MutTui in with its default options on each clade
 
 ## What labelling option should I use?
 

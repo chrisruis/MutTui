@@ -2,7 +2,7 @@
 
 ## Basic usage
 
-To calculate the mutational spectrum of an input alignment and tree run:
+To calculate a mutational spectrum, 4 files are needed: 1) sequence alignment in fasta format, 2) phylogenetic tree in newick format, 3) reference genome in fasta format, 4) conversion from alignment position to genome position (two tab-separated columns with no header, the first column contains the alignment position and the second column contains the corresponding genome position). Collect these files and then run:
 
 ```
 mkdir muttui_out
