@@ -6,7 +6,9 @@ We can compare mutational spectra with MutTui in 2 ways:
 1) Calculate spectra in separate MutTui runs and then compare - use this if the different groups can't be combined into a single phylogenetic tree
 2) Label the tree to calculate the spectra of different groups separately in a single MutTui run - use this if the different groups are in the same phylogenetic tree
 
-If you want to use option 1), you can run MutTui in with its default options on each clade
+If you want to use option 1., you can run MutTui with its default options on each clade
+
+For option 2., we first need to label the tree
 
 ## What labelling option should I use?
 

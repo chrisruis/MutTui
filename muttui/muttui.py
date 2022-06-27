@@ -77,16 +77,6 @@ def get_options():
                         "and identify synonymous mutations when --synonymous is used",
                         type = argparse.FileType("r"),
                         default = None)
-    io_opts.add_argument("-s",
-                        "--spectra_to_combine",
-                        dest = "spectra_to_combine",
-                        help = "Optional file containing labels whose spectra will be combined. " + 
-                        "The spectra of these labels will be calculated independently and then combined post-processing. " + 
-                        "For example, label each patient separately to calculate mutations within a patient clade, then combine " + 
-                        "the spectra from multiple patients into a single within-patient spectrum. This file has no header. Each row " + 
-                        "is a set of labels to be combined separated by commas",
-                        type = argparse.FileType("r"),
-                        default = None)
     io_opts.add_argument("-to",
                         "--treetime_out",
                         dest = "treetime_out",
