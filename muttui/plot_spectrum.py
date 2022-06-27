@@ -276,7 +276,8 @@ def plotSpectrumPointComparison(spectrum1, spectrum2, outFile):
         plt.savefig(outFile.name)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Plots a mutational spectrum"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-s",
                         "--spectrum",

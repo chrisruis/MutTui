@@ -9,7 +9,8 @@ import argparse
 from plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Combines multiple input spectra and/or catalogues into a single output catalogue"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-s",
                         "--spectra",

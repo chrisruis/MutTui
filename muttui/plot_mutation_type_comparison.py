@@ -113,7 +113,8 @@ def plotTypeComparison(catalogDict, colourFile):
         plotProportions(samples, tg, colours, "proportion_T_G.pdf")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Plots mutation type proportions from a catalogue"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-c",
                         "--catalog",

@@ -223,7 +223,8 @@ def extractUMAP(sL, labels, colours, output_dir):
     umapFig.figure.savefig(output_dir + "sample_umap.pdf")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Calculate distances between a set of input spectra and cluster based on a range of methods"
+    parser = argparse.ArgumentParser(description = description)
 
     spectra = parser.add_mutually_exclusive_group(required = True)
     spectra.add_argument("-s",

@@ -39,7 +39,8 @@ def getMutationProportions(s, mutations):
     return(s)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Creates a spectrum containing mutations elevated in one spectrum over another, in proportion to their elevation"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-s1",
                         "--spectrum1",

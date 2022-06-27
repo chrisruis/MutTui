@@ -34,7 +34,8 @@ from plot_spectrum import *
 #    return(sL)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Subtracts one mutational spectrum from another"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-s",
                         "--spectra",

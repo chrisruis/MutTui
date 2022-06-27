@@ -4,7 +4,8 @@
 import argparse
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Creates the position conversion file for MutTui from a VCF file"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-v",
                         "--vcf",

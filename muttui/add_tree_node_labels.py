@@ -28,18 +28,20 @@ def labelTreeNodes(tree):
     return(tree)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Adds numerical node labels to a given tree to enable labelling of the tree into groups"
+
+    parser = argparse.ArgumentParser(description = description)
     parser.add_argument("-t",
                         "--tree",
                         dest = "tree",
                         required = True,
-                        help = "Newick tree file",
+                        help = "Newick tree file to be labelled",
                         type = argparse.FileType("r"))
     parser.add_argument("-o",
                         "--outfile",
                         dest = "outFile",
                         required = True,
-                        help = "Output tree file")
+                        help = "Name of output tree file")
     args = parser.parse_args()
 
     #Clean the tree to remove any bootstrap supports

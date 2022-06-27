@@ -76,7 +76,8 @@ def labelTreeMutations(tree, mutations):
     return(tree, branches)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Labels a tree for MutTui based on mutations in one or more genes"
+    parser = argparse.ArgumentParser(description = description)
     parser.add_argument("-t",
                         "--tree",
                         dest = "tree",

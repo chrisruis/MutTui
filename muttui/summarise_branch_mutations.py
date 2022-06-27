@@ -5,6 +5,7 @@
 #To run: python3 summarise_branch_mutations.py -m all_included_mutations.csv -t annotated_tree.nexus -o output_prefix
 
 import argparse
+from unicodedata import decimal
 from Bio import Phylo
 import os
 
@@ -162,7 +163,9 @@ def convertTipDict(tree):
     return(tips, tipList)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Generates a branch-specific summary of mutations in a mutational spectrum"
+    parser = argparse.ArgumentParser(description = description)
+
     parser.add_argument("-m",
                         dest = "mutations",
                         required = True,

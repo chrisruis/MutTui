@@ -22,7 +22,9 @@ def getLabels(labelsFile):
     return(labels)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Splits mutations into separate mutational spectra based on branch labels"
+    parser = argparse.ArgumentParser(description = description)
+
     parser.add_argument("-m",
                         "--mutations",
                         dest = "mutations",

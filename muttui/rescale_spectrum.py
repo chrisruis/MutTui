@@ -188,7 +188,9 @@ def rescaleDouble(spectrum, reference, scalar, rna):
     return(rescaledSpectrum)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Rescales a mutational spectrum based on triplet availability in a given reference"
+    parser = argparse.ArgumentParser(description = description)
+    
     parser.add_argument("-s",
                         "--spectrum",
                         dest = "spectrum",

@@ -11,6 +11,7 @@
 #and the FASTA reference file
 
 import argparse
+from pydoc import describe
 from re import A
 import pandas as pd
 from Bio import SeqIO
@@ -93,7 +94,8 @@ def getMultiContigContext(mutation, reference):
     return(reference[mutation[3]][mutation[2] - 2], reference[mutation[3]][mutation[2]])
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Calculates a mutational spectrum from SNP data"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-v",
                         "--variant_file",

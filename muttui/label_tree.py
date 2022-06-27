@@ -73,7 +73,9 @@ def labelTreeState(tree, root_state, stateDict):
     return(tree)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Labels nodes in a phylogenetic tree for use with MutTui"
+
+    parser = argparse.ArgumentParser(description = description)
     parser.add_argument("-t",
                         "--tree",
                         dest = "tree",

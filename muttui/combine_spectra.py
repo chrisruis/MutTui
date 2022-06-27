@@ -5,7 +5,8 @@ import argparse
 from plot_spectrum import convertSpectrumDict
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    description = "Sums the mutations in a number of input spectra to form a single output spectrum"
+    parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-s",
                         "--spectra",
