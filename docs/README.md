@@ -31,7 +31,7 @@ By default, MutTui will assign all branches in the given tree to the same mutati
 
 ```
 python3 add_tree_node_labels.py -t unlabelled_tree.nwk -o tree_with_node_labels.nwk
-python3 label_tree.py -t unlabelled_tree.nwk -r root_state -s branch_state branch_state -o state_labelled_tree.nwk
+python3 label_tree.py -t unlabelled_tree.nwk -r root_state -s branch_state branch_state -o labelled_tree.nwk
 ```
 
 Then run MutTui including the labelled tree with -lt:
