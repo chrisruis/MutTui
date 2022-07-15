@@ -16,6 +16,6 @@
     - [Spectrum subtractions](/Comparing_spectra/spectrum_subtractions.md)
     - [Cosine similarity and clustering](/Comparing_spectra/cosine_similarity.md)
 
-- Using variant data
+- [Using variant data](/Using_variant_data/variant_data.md)
 
 - Post-processing
