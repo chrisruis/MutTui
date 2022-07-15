@@ -19,3 +19,6 @@
 - [Using variant data](/Using_variant_data/variant_data.md)
 
 - Post-processing
+
+    - [Generating branch summaries](/Post_processing/branch_summaries.md)
+    - [Splitting spectra into subgroups](/Post_processing/)

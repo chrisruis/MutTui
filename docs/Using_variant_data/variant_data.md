@@ -10,3 +10,5 @@ To calculate mutational spectra from variant data run:
 ```
 python3 korimuto.py -v VCF/variant_file -r reference.fasta -o output_prefix
 ```
+
+If a variant file is used, option --variant should be specified
