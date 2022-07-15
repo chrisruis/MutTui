@@ -12,7 +12,7 @@ Column 2 contains the count of the contextual mutation
 
 Plot of the SBS spectrum in mutational_spectrum_label_X.csv
 
-#### DBS_label_X.csv
+#### DBS_label_X.csv
 
 The inferred DBS spectrum from branches with label X. If your tree wasn't labelled, there will be one output file with label A. If your tree was labelled, there will be one output file per label
 
