@@ -13,7 +13,7 @@ The output directory to which the results will be written also need to be specif
 python3 muttui.py -a alignment.fasta -t tree.nwk -r reference.fasta -c conversion.txt -o muttui_out
 ```
 
-You can also provide MutTui additional [input files](#Additional input files) and [options](#Optional arguments), outlined in the sections below
+You can also provide MutTui additional [input files](#dditional-input-files) and [options](#optional-arguments), outlined in the sections below
 
 # Additional input files
 
