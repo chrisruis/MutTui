@@ -7,7 +7,7 @@ MutTui requires at least 4 files to run:
 3) Reference genome in fasta format - provided with option -r
 4) Conversion from alignment position to genome position - provided with option -c
 
-The output directory to which the results will be written also need to be specified. The most basic MutTui command is therefore:
+The output directory to which the results will be written also need to be specified. The most basic MutTui command is:
 
 ```
 python3 muttui.py -a alignment.fasta -t tree.nwk -r reference.fasta -c conversion.txt -o muttui_out
