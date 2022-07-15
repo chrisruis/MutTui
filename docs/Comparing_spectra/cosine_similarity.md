@@ -1,4 +1,4 @@
-# Calculating cosine similarity between spectra
+# Calculating cosine similarity between spectra
 
 Cosine similarity is a useful measure to compare how similar spectra are to one another at the overall level
 
