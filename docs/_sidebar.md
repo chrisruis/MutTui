@@ -11,6 +11,8 @@
 
 - Comparing spectra
 
+    - [Spectrum subtractions](/Comparing_spectra/spectrum_subtractions.md)
+
 - Combining spectra
 
 - Using variant data
