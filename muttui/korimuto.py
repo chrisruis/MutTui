@@ -11,8 +11,6 @@
 #and the FASTA reference file
 
 import argparse
-from pydoc import describe
-from re import A
 import pandas as pd
 from Bio import SeqIO
 import sys

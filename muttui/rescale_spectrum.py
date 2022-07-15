@@ -3,7 +3,6 @@
 
 import argparse
 from collections import OrderedDict, Counter
-from tkinter import dnd
 from Bio import SeqIO
 from plot_spectrum import convertSpectrumDict
 from reconstruct_spectrum import getMutationDict, getRNADict, getDoubleSubstitutionDict, complement

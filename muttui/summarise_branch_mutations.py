@@ -5,7 +5,6 @@
 #To run: python3 summarise_branch_mutations.py -m all_included_mutations.csv -t annotated_tree.nexus -o output_prefix
 
 import argparse
-from unicodedata import decimal
 from Bio import Phylo
 import os
 
