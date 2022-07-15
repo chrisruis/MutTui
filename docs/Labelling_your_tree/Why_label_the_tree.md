@@ -2,7 +2,7 @@
 
 It's often useful to compare spectra between different groups of pathogens. If these groups are separate clades, MutTui can be run on each clade separately and the outputs compared. But it's often useful to compare multiple groups within the same tree. For example, we might want to compare the green and purple groups within this tree:
 
-<img src="_figures/labelled_tree.png">
+<img src="_figures/labelled_tree.png" width = "500">
 
 In this tree, the purple sequences form a single cluster. But it might be that the groups are more interspersed:
 
