@@ -2,7 +2,7 @@
 
 A set of summaries can be generated for each branch in the tree using:
 ```
-python3 MutTui/muttui/summarise_branch_mutations.py -m all_included_mutations.csv -t annotated_tree.nexus -o out_prefix
+python3 summarise_branch_mutations.py -m all_included_mutations.csv -t annotated_tree.nexus -o out_prefix
 ```
 
 The all_included_mutations.csv and annotated_tree.nexus files are in the MutTui output directory
