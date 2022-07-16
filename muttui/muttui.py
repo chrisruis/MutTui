@@ -2,26 +2,27 @@
 
 import os
 import argparse
-from isvalid import *
-from treetime import run_treetime
+from .treetime import run_treetime, change_gaps_to_Ns
+from .isvalid import *
 import subprocess
 import array
 from Bio import AlignIO, Phylo
 from collections import OrderedDict
 import gffutils as gff
-from add_tree_node_labels import *
-from branch_labelling import *
-from reconstruct_spectrum import *
-from plot_spectrum import *
-from gff_conversion import *
+from .add_tree_node_labels import *
+from .branch_labelling import *
+from .reconstruct_spectrum import *
+from .plot_spectrum import *
+from .gff_conversion import *
 
-from __init__ import __version__
+from .__init__ import __version__
 
-#Parse command line options
-def get_options():
-    description = "Run the MutTui pipeline on a given alignment and tree"
 
-    parser = argparse.ArgumentParser(description = description)
+
+
+def muttui_parser(parser):
+
+    parser.description = "Run the MutTui pipeline on a given alignment and tree"
 
     #Options for input and output files
     io_opts = parser.add_argument_group("Input/output")
@@ -161,12 +162,14 @@ def get_options():
     parser.add_argument("--version",
                         action = "version",
                         version = "%(prog)s " + __version__)
-    
-    args = parser.parse_args()
-    return(args)
 
-def main():
-    args = get_options()
+    parser.set_defaults(func=muttui)
+
+    return parser
+
+
+
+def muttui(args):
 
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
@@ -426,6 +429,21 @@ def main():
     outMutationsNotUsed.close()
     outAllMutations.close()
     outAllDouble.close()
+
+    return
+
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = muttui_parser(parser)
+    args = parser.parse_args()
+
+    # run muttui
+    args.func(args)
+
+    return
 
 if __name__ == "__main__":
     main()

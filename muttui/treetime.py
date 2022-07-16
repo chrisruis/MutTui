@@ -27,7 +27,7 @@ def run_treetime(alignment, tree, output_dir, add_treetime_cmds):
     cmd += " --tree " + tree.name
     cmd += " --outdir " + output_dir
 
-    subprocess.run(cmd, shell = True, check = True, executable = '/bin/sh')
+    subprocess.run(cmd, shell = True, check = True)
 
     #Check if treetime completed successfully
     if (os.stat(output_dir + "ancestral_sequences.fasta").st_size == 0) or (os.stat(output_dir + "annotated_tree.nexus") == 0):
@@ -41,7 +41,7 @@ def run_treetime_mugration(tree, labels, output_dir):
     cmd += " --states " + labels
     cmd += " --attribute group --confidence --outdir " + output_dir + "/mugration_out"
 
-    subprocess.run(cmd, shell = True, check = True, executable = '/bin/sh')
+    subprocess.run(cmd, shell = True, check = True)
 
 #treetime reconstructs mutations at gap sites, which are later removed by MutTui
 #This can be a problem if there are large numbers of gap sites as the resulting annotated nexus tree
