@@ -10,9 +10,8 @@ import numpy as np
 from scipy import spatial
 from sklearn import manifold
 import umap
-import umap.plot
 from matplotlib import pyplot as plt
-from plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, convertSpectrumProportions
+from .plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, convertSpectrumProportions
 #from compare_spectra import convertSpectrumProportions
 
 #Converts a set of spectra into a list of dictionaries
@@ -222,66 +221,10 @@ def extractUMAP(sL, labels, colours, output_dir):
     
     umapFig.figure.savefig(output_dir + "sample_umap.pdf")
 
-if __name__ == "__main__":
-    description = "Calculate distances between a set of input spectra and cluster based on a range of methods"
-    parser = argparse.ArgumentParser(description = description)
 
-    spectra = parser.add_mutually_exclusive_group(required = True)
-    spectra.add_argument("-s",
-                        "--spectra",
-                        dest = "spectra",
-                        nargs = "+",
-                        help = "Spectrum files to be clustered. All files specified with -s will be clustered",
-                        type = argparse.FileType("r"))
-    spectra.add_argument("-c",
-                        "--catalog",
-                        dest = "catalog",
-                        help = "Multi-sample catalog containing spectra, samples as columns and mutation counts as rows",
-                        type = argparse.FileType("r"))
-    parser.add_argument("-l",
-                        "--labels",
-                        dest = "labels",
-                        nargs = "+",
-                        help = "Labels for each spectrum provided with -s. If not provided, the file names will be used as labels",
-                        default = None)
-    parser.add_argument("-m",
-                        "--method",
-                        dest = "method",
-                        help = "The method used to calculate distances between pairs of spectra. " + 
-                        "Options are cosine similarity (specified with cosine), Bhattacharyya and JS (Jensen-Shannon). Cosine " +
-                        "similarity is default",
-                        default = "cosine")
-    parser.add_argument("-cl",
-                        "--colours",
-                        dest = "colour_file",
-                        default = None,
-                        help = "Optional file containing information to colour points in the output clustering. " + 
-                        "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
-                        "name of the sample. If providing labels with -l, these names should match the labels. If " +
-                        "using a catalog, these names should match the column names. If using file paths, these names should " +
-                        "match the file paths, as provided to -s. Column 2 is the group to which the sample name belongs or " + 
-                        "the colour that the corresponding point will be",
-                        type = argparse.FileType("r"))
-    parser.add_argument("--colour_labels",
-                        dest = "colour_labels",
-                        help = "Specify that the sample labels in the file provided with -cl are colours",
-                        action = "store_true",
-                        default = False)
-    parser.add_argument("--proportions",
-                        dest = "proportions",
-                        help = "Specify if the spectrum to be clustered are proportions rather than numbers of mutations, " + 
-                        "e.g. if comparing SigProfilerExtractor signatures",
-                        action = "store_true",
-                        default = False)
-    parser.add_argument("-o",
-                        "--out_prefix",
-                        dest = "output_dir",
-                        required = True,
-                        help = "Output directory")
-    
-    args = parser.parse_args()
+def cluster_spectra(args):
 
-    #If using labels, verify that there are the same number of labels as spectra
+     #If using labels, verify that there are the same number of labels as spectra
     if args.labels:
         if len(args.spectra) != len(args.labels):
             raise RuntimeError("The number of labels provided with -l must match the number of spectra provided with -s")
@@ -337,3 +280,82 @@ if __name__ == "__main__":
     plotUMAP(distances, cConversion, args.output_dir)
 
     #extractUMAP(sL, sampleNames, cConversion, args.output_dir)
+
+    return
+
+def cluster_spectra_parser(parser):
+
+    parser.description = "Calculate distances between a set of input spectra and cluster based on a range of methods"
+
+    spectra = parser.add_mutually_exclusive_group(required = True)
+    spectra.add_argument("-s",
+                        "--spectra",
+                        dest = "spectra",
+                        nargs = "+",
+                        help = "Spectrum files to be clustered. All files specified with -s will be clustered",
+                        type = argparse.FileType("r"))
+    spectra.add_argument("-c",
+                        "--catalog",
+                        dest = "catalog",
+                        help = "Multi-sample catalog containing spectra, samples as columns and mutation counts as rows",
+                        type = argparse.FileType("r"))
+    parser.add_argument("-l",
+                        "--labels",
+                        dest = "labels",
+                        nargs = "+",
+                        help = "Labels for each spectrum provided with -s. If not provided, the file names will be used as labels",
+                        default = None)
+    parser.add_argument("-m",
+                        "--method",
+                        dest = "method",
+                        help = "The method used to calculate distances between pairs of spectra. " + 
+                        "Options are cosine similarity (specified with cosine), Bhattacharyya and JS (Jensen-Shannon). Cosine " +
+                        "similarity is default",
+                        default = "cosine")
+    parser.add_argument("-cl",
+                        "--colours",
+                        dest = "colour_file",
+                        default = None,
+                        help = "Optional file containing information to colour points in the output clustering. " + 
+                        "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
+                        "name of the sample. If providing labels with -l, these names should match the labels. If " +
+                        "using a catalog, these names should match the column names. If using file paths, these names should " +
+                        "match the file paths, as provided to -s. Column 2 is the group to which the sample name belongs or " + 
+                        "the colour that the corresponding point will be",
+                        type = argparse.FileType("r"))
+    parser.add_argument("--colour_labels",
+                        dest = "colour_labels",
+                        help = "Specify that the sample labels in the file provided with -cl are colours",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("--proportions",
+                        dest = "proportions",
+                        help = "Specify if the spectrum to be clustered are proportions rather than numbers of mutations, " + 
+                        "e.g. if comparing SigProfilerExtractor signatures",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("-o",
+                        "--out_prefix",
+                        dest = "output_dir",
+                        required = True,
+                        help = "Output directory")
+
+    parser.set_defaults(func=cluster_spectra)
+
+    return(parser)
+
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = cluster_spectra_parser(parser)
+    args = parser.parse_args()
+
+    # run cluster_spectra
+    args.func(args)
+
+    return
+
+if  __name__ == "__main__":
+    main()

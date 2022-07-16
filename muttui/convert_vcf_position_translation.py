@@ -3,9 +3,9 @@
 
 import argparse
 
-if __name__ == "__main__":
-    description = "Creates the position conversion file for MutTui from a VCF file"
-    parser = argparse.ArgumentParser(description = description)
+def convert_vcf_position_translation_parser(parser):
+
+    parser.description = "Creates the position conversion file for MutTui from a VCF file"
 
     parser.add_argument("-v",
                         "--vcf",
@@ -24,7 +24,12 @@ if __name__ == "__main__":
                         dest = "outfile",
                         required = True,
                         help = "Name of output file")
-    args = parser.parse_args()
+
+    parser.set_defaults(func=convert_vcf_position_translation)
+
+    return(parser)
+
+def convert_vcf_position_translation(args):
 
     #Import the vcf file
     vcf = open(args.vcf).readlines()
@@ -44,3 +49,20 @@ if __name__ == "__main__":
                 iterator += 1
 
     outFile.close()
+
+    return
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = convert_vcf_position_translation_parser(parser)
+    args = parser.parse_args()
+
+    # run convert_vcf_position_translation
+    args.func(args)
+
+    return
+
+if __name__ == "__main__":
+    main()

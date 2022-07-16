@@ -2,11 +2,11 @@
 #Typically run after MutTui to combine multiple calculated spectra into a single spectrum
 
 import argparse
-from plot_spectrum import convertSpectrumDict
+from .plot_spectrum import convertSpectrumDict
 
-if __name__ == "__main__":
-    description = "Sums the mutations in a number of input spectra to form a single output spectrum"
-    parser = argparse.ArgumentParser(description = description)
+def combine_spectra_parser(parser):
+
+    parser.description = "Sums the mutations in a number of input spectra to form a single output spectrum"
 
     parser.add_argument("-s",
                         "--spectra",
@@ -20,8 +20,12 @@ if __name__ == "__main__":
                         dest = "outFile",
                         required = True,
                         help = "Name of the output file to which the combined spectrum will be written")
-    
-    args = parser.parse_args()
+
+    parser.set_defaults(func=combine_spectra)
+
+    return(parser)
+
+def combine_spectra(args):
 
     #Import the first spectrum, convert it to a dictionary that the others will be combined into
     combinedDict = convertSpectrumDict(args.spectra[0])
@@ -41,3 +45,20 @@ if __name__ == "__main__":
         outFile.write(eachMutation + "," + str(combinedDict[eachMutation]) + "\n")
 
     outFile.close()
+
+    return
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = combine_spectra_parser(parser)
+    args = parser.parse_args()
+
+    # run combine_spectra
+    args.func(args)
+
+    return
+
+if __name__ == "__main__":
+    main()

@@ -14,8 +14,8 @@ import argparse
 import pandas as pd
 from Bio import SeqIO
 import sys
-from reconstruct_spectrum import getMutationDict, getContext, complement
-from plot_spectrum import convertSpectrumFormat, plotSpectrumFromDict
+from .reconstruct_spectrum import getMutationDict, getContext, complement
+from .plot_spectrum import convertSpectrumFormat, plotSpectrumFromDict
 
 #Extracts variants from a VCF file, returns a list of lists with
 #each list containing chromosome, position, reference, variant
@@ -91,9 +91,10 @@ def extractMultiContig(fFile):
 def getMultiContigContext(mutation, reference):
     return(reference[mutation[3]][mutation[2] - 2], reference[mutation[3]][mutation[2]])
 
-if __name__ == "__main__":
-    description = "Calculates a mutational spectrum from SNP data"
-    parser = argparse.ArgumentParser(description = description)
+
+def korimuto_parser(parser):
+
+    parser.description = "Calculates a mutational spectrum from SNP data"
 
     parser.add_argument("-v",
                         "--variant_file",
@@ -131,7 +132,12 @@ if __name__ == "__main__":
                         required = True,
                         help = "Prefix for output files. By default, these will be saved in the current directory")
     
-    args = parser.parse_args()
+    parser.set_defaults(func = korimuto)
+
+    return(parser)
+
+
+def korimuto(args):
 
     #Extract variants from input file
     if args.variant:
@@ -196,3 +202,20 @@ if __name__ == "__main__":
     spectrumFormat = convertSpectrumFormat(spectrum)
     plotSpectrumFromDict(spectrumFormat, outSpectrum)
     outSpectrum.close()
+
+    return
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = korimuto_parser(parser)
+    args = parser.parse_args()
+
+    # run korimuto
+    args.func(args)
+
+    return
+
+if __name__ == "__main__":
+    main()
