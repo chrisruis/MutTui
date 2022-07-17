@@ -22,7 +22,7 @@ def find_version(*file_paths):
 
 setup(
     name="MutTui",
-    version=find_version("muttui/__init__.py"),
+    version=find_version("MutTui/__init__.py"),
     author="Christopher Ruis",
     description=
     "A pipeline to reconstruct mutational spectra for bacterial and viral datasets",
