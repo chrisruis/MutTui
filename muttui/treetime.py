@@ -19,13 +19,15 @@ def run_treetime(alignment, tree, output_dir, add_treetime_cmds):
     if add_treetime_cmds == None:
         cmd += "--gtr infer"
     elif "--gtr" not in add_treetime_cmds:
-        cmd += "--gtr infer"
+        cmd += "--gtr infer " + add_treetime_cmds 
     else:
         cmd += add_treetime_cmds
     
     cmd += " --aln " + alignment.name
     cmd += " --tree " + tree.name
     cmd += " --outdir " + output_dir
+
+    print('running cmd: ' + cmd)
 
     subprocess.run(cmd, shell = True, check = True)
 
