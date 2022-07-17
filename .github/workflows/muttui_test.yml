@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.8, 3.9, 3.10]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -28,6 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install qt5-default
         pip install treetime
         python --version
         pip install -U pip

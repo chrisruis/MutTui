@@ -32,7 +32,7 @@ setup(
         'gffutils', 'biopython', 'treetime', 'PyQt5', 'matplotlib', 'pandas', 'sklearn',
         'umap'
     ],
-    python_requires='>=3.6.0',
+    python_requires='>=3.8.0',
     packages=['MutTui'],
     keywords='transmission clustering metagenomics',
     classifiers=[
