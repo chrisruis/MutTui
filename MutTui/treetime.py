@@ -31,6 +31,11 @@ def run_treetime(alignment, tree, output_dir, add_treetime_cmds):
 
     subprocess.run(cmd, shell = True, check = True)
 
+    # Deal with old version of treetime
+    if os.path.isfile(output_dir + "ancestral_sequences{}.fasta"):
+        os.rename(output_dir + "ancestral_sequences{}.fasta", output_dir + "ancestral_sequences.fasta")
+        os.rename(output_dir + "annotated_tree{}.fasta", output_dir + "annotated_tree.fasta")
+
     #Check if treetime completed successfully
     if (os.stat(output_dir + "ancestral_sequences.fasta").st_size == 0) or (os.stat(output_dir + "annotated_tree.nexus") == 0):
         raise Exception("treetime did not complete successfully")
