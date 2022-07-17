@@ -3,8 +3,11 @@
 
 import argparse
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+matplotlib.use('Agg')
+
 
 #Converts an input spectrum from a csv file to a dictionary
 def convertSpectrumDict(spectrumFile):
