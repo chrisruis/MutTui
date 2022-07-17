@@ -3,6 +3,8 @@
 #This plots the 6 mutation types, not spectra
 
 import argparse
+import matplotlib
+matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 import sys
 
