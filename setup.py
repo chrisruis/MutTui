@@ -33,7 +33,7 @@ setup(
         'umap'
     ],
     python_requires='>=3.6.0',
-    packages=['muttui'],
+    packages=['MutTui'],
     keywords='transmission clustering metagenomics',
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -44,7 +44,7 @@ setup(
     ],
     entry_points={
         'console_scripts':
-        ['muttui = muttui.__main__:main',],
+        ['MutTui = MutTui.__main__:main',],
     },
     extras_require={"test": "pytest"},
 )

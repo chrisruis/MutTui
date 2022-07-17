@@ -1,5 +1,5 @@
 # test add_tree_node_labels
-from muttui.add_tree_node_labels import main
+from MutTui.add_tree_node_labels import main
 import sys, os
 import tempfile
 

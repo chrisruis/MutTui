@@ -1,14 +1,11 @@
 import os, sys
 import argparse
-from muttui.cluster_spectra import cluster_spectra_parser
-
-from muttui.compare_spectra import compare_spectra
-from muttui.korimuto import korimuto
 
 from .__init__ import __version__
 
 from .muttui import muttui_parser
 from .add_tree_node_labels import add_tree_node_labels_parser
+from .cluster_spectra import cluster_spectra_parser
 from .combine_spectra import combine_spectra_parser
 from .combine_spectra_into_catalog import combine_spectra_into_catalog_parser
 from .compare_spectra import compare_spectra_parser

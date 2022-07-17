@@ -1,5 +1,5 @@
 # test add_tree_node_labels
-from muttui.muttui import main
+from MutTui.muttui import main
 import sys
 import os
 import tempfile
@@ -20,7 +20,7 @@ def test_add_tree_node_labels(datafolder):
         main()
 
         tmpdirname += '/'
-        
+
         # check files are present
         assert os.path.isfile(tmpdirname + "DBS_label_A.csv")
         assert os.path.isfile(tmpdirname + "DBS_label_A.pdf")
