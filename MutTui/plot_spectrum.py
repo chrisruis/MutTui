@@ -4,7 +4,7 @@
 import argparse
 import numpy as np
 import matplotlib
-matplotlib.use('TKAgg')
+matplotlib.use('AGG')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 

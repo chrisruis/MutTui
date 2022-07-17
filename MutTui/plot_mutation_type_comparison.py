@@ -4,7 +4,7 @@
 
 import argparse
 import matplotlib
-matplotlib.use('TKAgg')
+matplotlib.use('AGG')
 import matplotlib.pyplot as plt
 import sys
 

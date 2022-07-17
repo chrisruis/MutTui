@@ -11,7 +11,7 @@ from scipy import spatial
 from sklearn import manifold
 import umap
 import matplotlib
-matplotlib.use('TKAgg')
+matplotlib.use('AGG')
 from matplotlib import pyplot as plt
 from .plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, convertSpectrumProportions
 #from compare_spectra import convertSpectrumProportions
