@@ -67,9 +67,7 @@ def allSitesTranslation(alignment):
 #Extracts the mutations and positions along a given branch
 def getMutations(branch, translation):
     mutations = []
-    branch = branch.split('="')[1]
-    if len(branch)<1: return mutations
-    for mutation in branch.split('"')[0].split(","):
+    for mutation in branch.split('="')[1].split('"')[0].split(","):
         mutations.append([mutation[0], int(mutation[1:-1]), translation[int(mutation[1:-1])], mutation[-1]])
 
     return(mutations)
@@ -118,12 +116,16 @@ def getBranchMutationNexusDict(NexusFile, translation):
     branchDict = defaultdict(list)
 
     with open(NexusFile, 'r') as infile:
-        matches = re.findall("\([^\&]+\&mutations\=\"[,A-Z0-9]*", infile.read())
+        matches = re.findall("[\.\_\-a-zA-Z0-9]+:[.0-9]+\[\&mutations\=\"[,A-Z0-9]*", infile.read())
         for m in matches:
-            bname = m.split(':')[0][1:]
-            branchDict[bname] += getMutations(m.split('[')[1], translation)
+            bname = m.split(':')[0]
+            muts = m.split('="')[1].split(",")
+            if muts[0] == '': continue
+            for mut in muts:
+                branchDict[bname].append([mut[0], int(mut[1:-1]), translation[int(mut[1:-1])], mut[-1]])
 
     return(branchDict)
+
 
 #Extracts the mutations in branch_mutations.txt to a dictionary with branch names as keys and mutations as values
 # def getBranchMutationDict(branchFile, translation):
