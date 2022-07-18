@@ -116,7 +116,7 @@ def getBranchMutationNexusDict(NexusFile, translation):
     branchDict = defaultdict(list)
 
     with open(NexusFile, 'r') as infile:
-        matches = re.findall("[\.\_\-a-zA-Z0-9]+:[.0-9]+\[\&mutations\=\"[,A-Z0-9]*", infile.read())
+        matches = re.findall("[^,\(\)]+:[.0-9]+\[\&mutations\=\"[,A-Z0-9]*", infile.read())
         for m in matches:
             bname = m.split(':')[0]
             muts = m.split('="')[1].split(",")
