@@ -3,11 +3,12 @@
 import argparse
 from Bio import AlignIO, Phylo
 from Bio.Seq import Seq
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import operator
 import numpy as np
 import array
 from treetime import *
+import re
 
 translation_table = np.array([[[b'K', b'N', b'K', b'N', b'X'],
                                [b'T', b'T', b'T', b'T', b'T'],
@@ -66,10 +67,11 @@ def allSitesTranslation(alignment):
 #Extracts the mutations and positions along a given branch
 def getMutations(branch, translation):
     mutations = []
-
-    for mutation in branch.split('="')[1].split('"')[0].split(","):
+    branch = branch.split('="')[1]
+    if len(branch)<1: return mutations
+    for mutation in branch.split('"')[0].split(","):
         mutations.append([mutation[0], int(mutation[1:-1]), translation[int(mutation[1:-1])], mutation[-1]])
-    
+
     return(mutations)
 
 #Gets the name of the upstream clade
@@ -112,23 +114,35 @@ def getBranchDict(tree, positionTranslation):
     return(branchDict)
 
 #Extracts the mutations in branch_mutations.txt to a dictionary with branch names as keys and mutations as values
-def getBranchMutationDict(branchFile, translation):
-    branchDict = {}
+def getBranchMutationNexusDict(NexusFile, translation):
+    branchDict = defaultdict(list)
 
-    #Iterate through the mutations and add to branchDict
-    with open(branchFile) as fileobject:
-        #Skip header
-        next(fileobject)
+    with open(NexusFile, 'r') as infile:
+        matches = re.findall("\([^\&]+\&mutations\=\"[,A-Z0-9]*", infile.read())
+        for m in matches:
+            bname = m.split(':')[0][1:]
+            branchDict[bname] += getMutations(m.split('[')[1], translation)
 
-        for line in fileobject:
-            node = line.strip().split("\t")[0]
-
-            if node in branchDict:
-                branchDict[node].append([line.strip().split("\t")[1], int(line.strip().split("\t")[2]), translation[int(line.strip().split("\t")[2])], line.strip().split("\t")[3]])
-            else:
-                branchDict[node] = [[line.strip().split("\t")[1], int(line.strip().split("\t")[2]), translation[int(line.strip().split("\t")[2])], line.strip().split("\t")[3]]]
-    
     return(branchDict)
+
+#Extracts the mutations in branch_mutations.txt to a dictionary with branch names as keys and mutations as values
+# def getBranchMutationDict(branchFile, translation):
+#     branchDict = {}
+
+#     #Iterate through the mutations and add to branchDict
+#     with open(branchFile) as fileobject:
+#         #Skip header
+#         next(fileobject)
+
+#         for line in fileobject:
+#             node = line.strip().split("\t")[0]
+
+#             if node in branchDict:
+#                 branchDict[node].append([line.strip().split("\t")[1], int(line.strip().split("\t")[2]), translation[int(line.strip().split("\t")[2])], line.strip().split("\t")[3]])
+#             else:
+#                 branchDict[node] = [[line.strip().split("\t")[1], int(line.strip().split("\t")[2]), translation[int(line.strip().split("\t")[2])], line.strip().split("\t")[3]]]
+    
+#     return(branchDict)
 
 
 #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed

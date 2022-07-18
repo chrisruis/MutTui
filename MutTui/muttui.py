@@ -282,11 +282,10 @@ def muttui(args):
     
     #Extracts mutations to a dictionary from the branch_mutations.txt file
     if not args.start_from_treetime:
-        branchMutationDict = getBranchMutationDict(args.output_dir + "branch_mutations.txt", positionTranslation)
+        branchMutationDict = getBranchMutationNexusDict(args.output_dir + "annotated_tree.nexus", positionTranslation)
     else:
-        branchMutationDict = getBranchMutationDict(args.treetime_out + "branch_mutations.txt", positionTranslation)
+        branchMutationDict = getBranchMutationNexusDict(args.output_dir + "annotated_tree.nexus", positionTranslation)
 
-    print(branchMutationDict)
     #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
     #and the root sequence from the ancestral reconstruction is used
     referenceSequence = getReference(args.reference, args.all_sites, alignment, positionTranslation)
