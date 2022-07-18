@@ -4,6 +4,14 @@ import sys
 import os
 import tempfile
 
+
+def compare_files(file1, file2):
+    with open(file1) as f1:
+        with open(file2) as f2:
+            assert f1.read() == f2.read()
+    return
+
+
 def test_add_tree_node_labels(datafolder):
 
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -38,8 +46,28 @@ def test_add_tree_node_labels(datafolder):
         assert os.path.isfile(tmpdirname + "sequence_evolution_model.txt")
 
         # check output
-        # TODO: add tests for output
-    
+        compare_files(tmpdirname + "DBS_label_A.csv", 
+                      datafolder + 'expected_output/' + "DBS_label_A.csv")
+        compare_files(tmpdirname + "all_included_double_substitutions.csv", 
+                      datafolder + 'expected_output/' + "all_included_double_substitutions.csv")
+        compare_files(tmpdirname + "all_included_mutations.csv", 
+                      datafolder + 'expected_output/' + "all_included_mutations.csv")
+        compare_files(tmpdirname + "ancestral_sequences.fasta", 
+                      datafolder + 'expected_output/' + "ancestral_sequences.fasta")
+        compare_files(tmpdirname + "annotated_tree.nexus", 
+                      datafolder + 'expected_output/' + "annotated_tree.nexus")
+        # compare_files(tmpdirname + "branch_mutations.txt", 
+        #               datafolder + 'expected_output/' + "branch_mutations.txt")
+        compare_files(tmpdirname + "gaps_to_N_alignment.fasta", 
+                      datafolder + 'expected_output/' + "gaps_to_N_alignment.fasta")
+        compare_files(tmpdirname + "mutation_types_label_A.csv", 
+                      datafolder + 'expected_output/' + "mutation_types_label_A.csv")
+        compare_files(tmpdirname + "mutational_spectrum_label_A.csv", 
+                      datafolder + 'expected_output/' + "mutational_spectrum_label_A.csv")
+        compare_files(tmpdirname + "mutations_not_included.csv", 
+                      datafolder + 'expected_output/' + "mutations_not_included.csv")
+        compare_files(tmpdirname + "sequence_evolution_model.txt", 
+                      datafolder + 'expected_output/' + "sequence_evolution_model.txt")
 
     return
 
