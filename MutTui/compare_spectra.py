@@ -4,8 +4,8 @@
 #Can carry out statistical tests to identify significantly different mutations between 2 spectra
 
 import argparse
-from reconstruct_spectrum import getMutationDict
-from plot_spectrum import *
+from .reconstruct_spectrum import getMutationDict
+from .plot_spectrum import *
 
 #Converts a given spectrum from number of mutations to proportion of mutations and returns the spectrum as a dictionary
 #def convertSpectrumProportions(spectrum):
@@ -33,9 +33,9 @@ from plot_spectrum import *
 #    
 #    return(sL)
 
-if __name__ == "__main__":
-    description = "Subtracts one mutational spectrum from another"
-    parser = argparse.ArgumentParser(description = description)
+def compare_spectra_parser(parser):
+
+    parser.description = "Subtracts one mutational spectrum from another"
 
     parser.add_argument("-s",
                         "--spectra",
@@ -56,8 +56,12 @@ if __name__ == "__main__":
                         dest = "out_prefix",
                         required = True,
                         help = "The prefix of the output files")
-    
-    args = parser.parse_args()
+
+    parser.set_defaults(func=compare_spectra)
+
+    return(parser)
+
+def compare_spectra(args):
 
     #Import the spectra into dictionaries
     if args.proportions:
@@ -88,3 +92,19 @@ if __name__ == "__main__":
     plotSpectrumComparison(spectrumDifference, args.out_prefix + "_spectrum_comparison.pdf")
 
     plotSpectrumPointComparison(spectrum1Proportions, spectrum2Proportions, args.out_prefix + "_proportion_comparison.pdf")
+
+    return
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = compare_spectra_parser(parser)
+    args = parser.parse_args()
+
+    # run compare_spectra
+    args.func(args)
+
+    return
+
+if  __name__ == "__main__":
+    main()

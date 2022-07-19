@@ -3,8 +3,12 @@
 
 import argparse
 import numpy as np
+import matplotlib
+matplotlib.use('AGG')
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+
+
 
 #Converts an input spectrum from a csv file to a dictionary
 def convertSpectrumDict(spectrumFile):
@@ -275,9 +279,10 @@ def plotSpectrumPointComparison(spectrum1, spectrum2, outFile):
     else:
         plt.savefig(outFile.name)
 
-if __name__ == "__main__":
-    description = "Plots a mutational spectrum"
-    parser = argparse.ArgumentParser(description = description)
+
+def plot_spectrum_parser(parser):
+
+    parser.description = "Plot a mutational spectrum"
 
     parser.add_argument("-s",
                         "--spectrum",
@@ -318,8 +323,12 @@ if __name__ == "__main__":
                         help = "Specify to plot the spectrum as proportion of mutations rather than number of mutations",
                         action = "store_true",
                         default = False)
-    
-    args = parser.parse_args()
+
+    parser.set_defaults(func = plot_spectrum)
+
+    return(parser)
+
+def plot_spectrum(args):
 
     #Extract the spectrum to a dictionary with mutations as keys and counts or proportions as values
     if args.proportions:
@@ -333,3 +342,21 @@ if __name__ == "__main__":
         plotDouble(spectrum, args.plot_proportion, args.outFile)
     else:
         plotSpectrumFromDict(spectrum, args.outFile)
+
+    return
+
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = plot_spectrum_parser(parser)
+    args = parser.parse_args()
+
+    # run plot_spectrum
+    args.func(args)
+
+    return
+
+if __name__ == "__main__":
+    main()

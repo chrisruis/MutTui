@@ -27,10 +27,10 @@ def labelTreeNodes(tree):
     
     return(tree)
 
-if __name__ == "__main__":
-    description = "Adds numerical node labels to a given tree to enable labelling of the tree into groups"
+def add_tree_node_labels_parser(parser):
 
-    parser = argparse.ArgumentParser(description = description)
+    parser.description = "Adds numerical node labels to a given tree to enable labelling of the tree into groups"
+
     parser.add_argument("-t",
                         "--tree",
                         dest = "tree",
@@ -42,7 +42,13 @@ if __name__ == "__main__":
                         dest = "outFile",
                         required = True,
                         help = "Name of output tree file")
-    args = parser.parse_args()
+    
+    parser.set_defaults(func=add_tree_node_labels)
+    
+    return(parser)
+
+
+def add_tree_node_labels(args):
 
     #Clean the tree to remove any bootstrap supports
     tree = cleanTree(Phylo.read(args.tree.name, "newick"))
@@ -52,3 +58,20 @@ if __name__ == "__main__":
 
     #Write the labelled tree
     Phylo.write(labelledTree, args.outFile, "newick")
+
+    return
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = add_tree_node_labels_parser(parser)
+    args = parser.parse_args()
+
+    # run add_tree_node_labels
+    args.func(args)
+
+    return
+
+if __name__ == "__main__":
+    main()

@@ -4,7 +4,7 @@
 
 import argparse
 from Bio import Phylo
-from add_tree_node_labels import cleanTree
+from .add_tree_node_labels import cleanTree
 
 #Labels the nodes and tips of the tree with their names
 def labelAllClades(tree):
@@ -72,10 +72,11 @@ def labelTreeState(tree, root_state, stateDict):
     
     return(tree)
 
-if __name__ == "__main__":
-    description = "Labels nodes in a phylogenetic tree for use with MutTui"
 
-    parser = argparse.ArgumentParser(description = description)
+def label_tree_parser(parser):
+
+    parser.description = "Labels nodes in a phylogenetic tree for use with MutTui"
+
     parser.add_argument("-t",
                         "--tree",
                         dest = "tree",
@@ -108,7 +109,12 @@ if __name__ == "__main__":
                         dest = "outFile",
                         required = True,
                         help = "Output newick tree file")
-    args = parser.parse_args()
+
+    parser.set_defaults(func = label_tree)
+
+    return(parser)
+
+def label_tree(args):
 
     #Clean the tree to remove any bootstrap supports
     tree = cleanTree(Phylo.read(args.tree.name, "newick"))
@@ -124,3 +130,21 @@ if __name__ == "__main__":
 
     #Write the state labelled tree
     Phylo.write(stateTree, args.outFile, "newick")
+
+    return
+
+
+
+def main():
+    # set up and parse arguments
+    parser = argparse.ArgumentParser()
+    parser = label_tree_parser(parser)
+    args = parser.parse_args()
+
+    # run label_tree
+    args.func(args)
+
+    return
+
+if __name__ == "__main__":
+    main()

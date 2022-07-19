@@ -12,7 +12,7 @@ Collect these files and then run:
 
 ```
 mkdir muttui_out
-python3 muttui.py -a alignment.fasta -t tree.nwk -r reference.fasta -c conversion.txt -o muttui_out
+MutTui run -a alignment.fasta -t tree.nwk -r reference.fasta -c conversion.txt -o muttui_out
 ```
 
 ## Creating the position conversion file
@@ -20,7 +20,7 @@ python3 muttui.py -a alignment.fasta -t tree.nwk -r reference.fasta -c conversio
 To create the conversion.txt file from a VCF, run:
 
 ```
-python3 convert_vcf_position_translation.py -v positions.vcf -o conversion.txt
+MutTui convert-vcf -v positions.vcf -o conversion.txt
 ```
 
 ## Labelling your tree
@@ -30,13 +30,13 @@ More details in [Labelling_your_tree](https://github.com/chrisruis/MutTui/tree/m
 By default, MutTui will assign all branches in the given tree to the same mutational spectrum. If you want to split your tree into multiple groups, first label the tree using:
 
 ```
-python3 add_tree_node_labels.py -t unlabelled_tree.nwk -o tree_with_node_labels.nwk
-python3 label_tree.py -t unlabelled_tree.nwk -r root_state -s branch_state branch_state -o labelled_tree.nwk
+MutTui label-nodes -t unlabelled_tree.nwk -o tree_with_node_labels.nwk
+MutTui label-tree -t unlabelled_tree.nwk -r root_state -s branch_state branch_state -o labelled_tree.nwk
 ```
 
 Then run MutTui including the labelled tree with -lt:
 
 ```
 mkdir muttui_out
-python3 muttui.py -a alignment.fasta -t tree.nwk -lt labelled_tree.nwk -r reference.fasta -c conversion.txt -o muttui_out
+MutTui run -a alignment.fasta -t tree.nwk -lt labelled_tree.nwk -r reference.fasta -c conversion.txt -o muttui_out
 ```

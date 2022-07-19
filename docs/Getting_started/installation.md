@@ -1,6 +1,18 @@
 # Installation
 
-MutTui will soon be available for installation through conda. But currently, to install either clone the GitHub repository or download the scripts from the repository
+MutTui will soon be available for installation through conda. But currently, to install either clone the GitHub repository or download the scripts from the repository.
+
+### Pip
+
+Currently the development version of MutTui can be installed using pip by running
+
+```
+pip3 install git+https://github.com/chrisruis/MutTui
+```
+
+### Conda
+
+In progress..
 
 ### treetime
 
