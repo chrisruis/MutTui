@@ -4,7 +4,7 @@ One way to compare 2 spectra is to subtract the mutation proportions in one spec
 
 To do this run:
 ```
-python3 compare_spectra.py -s spectrum1.csv spectrum2.csv -o S1_S2
+MutTui compare -s spectrum1.csv spectrum2.csv -o S1_S2
 ```
 
 The 2nd spectrum provided with -s is subtracted from the first

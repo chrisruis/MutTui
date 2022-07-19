@@ -4,7 +4,7 @@ Cosine similarity is a useful measure to compare how similar spectra are to one 
 
 To calculate cosine similarity between a set of spectra run:
 ```
-python3 cluster_spectra.py -s spectrum1.csv spectrum2.csv spectrum3.csv -l S1 S2 S3 -o .
+MutTui cluster -s spectrum1.csv spectrum2.csv spectrum3.csv -l S1 S2 S3 -o .
 ```
 
 Provide the spectra to be compared with -s. The optional labels provided with -l will be the names of the spectra in the output file; provide one label for each input spectrum. If -l is not provided, the file names (including paths) will be used as spectrum names
@@ -13,7 +13,7 @@ The cosine similarities between all pairs of spectra are output as cosine_simila
 
 Alternatively, the spectra can first be combined into a catalogue (see [Combining spectra](https://chrisruis.github.io/MutTui/#/Combining_spectra)) which can be provided with -c without -s:
 ```
-python3 cluster_spectra.py -c catalogue.csv -o .
+MutTui catalogue -c catalogue.csv -o .
 ```
 
 In this case, the catalogue column names will be used as sample names

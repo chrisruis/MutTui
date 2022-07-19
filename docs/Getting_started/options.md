@@ -96,31 +96,52 @@ Use this to calculate the output a separate mutational spectrum for each branch 
 Use this to specify additional options that are provided to treetime for ancestral reconstruction
 
 # MutTui usage
+
 ```
-usage: muttui.py [-h] -a ALIGNMENT -t TREE -o OUTPUT_DIR [-l LABELS] [-lt LABELLED_TREE] [-r REFERENCE] [-c CONVERSION] [-g GFF] [-to TREETIME_OUT] [-bm BRANCH_MUTATIONS] [--add_treetime_cmds ADD_TREETIME_CMDS] [--rna]
-                 [--all_sites] [--include_all_branches] [--exclude_root_branches] [-rs ROOT_STATE] [--start_from_treetime] [--strand_bias] [--synonymous] [--branch_specific] [--version]
+usage: MutTui run [-h] -a ALIGNMENT -t TREE -o OUTPUT_DIR [-l LABELS] [-lt LABELLED_TREE]
+                  [-r REFERENCE] [-c CONVERSION] [-g GFF] [-to TREETIME_OUT] [-bm BRANCH_MUTATIONS]
+                  [--add_treetime_cmds ADD_TREETIME_CMDS] [--rna] [--all_sites]
+                  [--include_all_branches] [--exclude_root_branches] [-rs ROOT_STATE]
+                  [--start_from_treetime] [--strand_bias] [--synonymous] [--branch_specific]
+                  [--version]
 
 Run the MutTui pipeline on a given alignment and tree
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  --rna                 Specify if using an RNA pathogen, MutTui will output an RNA mutational spectrum
-  --all_sites           Specify that the alignment contains all sites, in which case a reference genome does not need to be provided
+  --rna                 Specify if using an RNA pathogen, MutTui will output an RNA mutational
+                        spectrum
+  --all_sites           Specify that the alignment contains all sites, in which case a reference
+                        genome does not need to be provided
   --include_all_branches
-                        Use when specifying a labelled tree with -lt. By default, the branches along which the label changes are excluded as it is often not clear at what point along the branch the label changed. With adding
-                        --include_all_branches, all of the branches along which a label changes will be included in the spectrum of the downstream label
+                        Use when specifying a labelled tree with -lt. By default, the branches along
+                        which the label changes are excluded as it is often not clear at what point
+                        along the branch the label changed. With adding --include_all_branches, all
+                        of the branches along which a label changes will be included in the spectrum
+                        of the downstream label
   --exclude_root_branches
-                        Use when excluding the two branches that branch directly from the root node. These branches will not be included in any spectrum
+                        Use when excluding the two branches that branch directly from the root node.
+                        These branches will not be included in any spectrum
   -rs ROOT_STATE, --root_state ROOT_STATE
-                        Specify the root state of the given label if known. The root state is calculated by treetime mugration and in almost all cases will be resolved. If the root state has multiple assignments that are equally
-                        likely, it cannot be assigned from treetime mugration output. In these rare cases, use this option to assign the root state. This option can also be used to assign a root state if you'd like but its
-                        recommended to use the mugration state
+                        Specify the root state of the given label if known. The root state is
+                        calculated by treetime mugration and in almost all cases will be resolved. If
+                        the root state has multiple assignments that are equally likely, it cannot be
+                        assigned from treetime mugration output. In these rare cases, use this option
+                        to assign the root state. This option can also be used to assign a root state
+                        if you'd like but its recommended to use the mugration state
   --start_from_treetime
-                        Use this option to start with treetime output and so skip inference of ancestral mutations. Use this if you have already run treetime. The directory containing the treetime output files needs to be provided
-                        with -to
-  --strand_bias         Split mutations into transcribed and untranscribed strands to test for transcription strand bias. A GFF file will need to be provided with option -g to identify genes
-  --synonymous          Use non-coding and synonymous mutations only to calculate the mutational spectrum. A GFF file will need to be provided with option -g which will be used to identify genes
-  --branch_specific     Calculate the mutational spectrum for each branch in the tree separately. Only branches containing at least the number of mutations specified with -bm will be included
+                        Use this option to start with treetime output and so skip inference of
+                        ancestral mutations. Use this if you have already run treetime. The directory
+                        containing the treetime output files needs to be provided with -to
+  --strand_bias         Split mutations into transcribed and untranscribed strands to test for
+                        transcription strand bias. A GFF file will need to be provided with option -g
+                        to identify genes
+  --synonymous          Use non-coding and synonymous mutations only to calculate the mutational
+                        spectrum. A GFF file will need to be provided with option -g which will be
+                        used to identify genes
+  --branch_specific     Calculate the mutational spectrum for each branch in the tree separately.
+                        Only branches containing at least the number of mutations specified with -bm
+                        will be included
   --version             show program's version number and exit
 
 Input/output:
@@ -130,23 +151,36 @@ Input/output:
   -o OUTPUT_DIR, --out_dir OUTPUT_DIR
                         Location of output directory, should already be created and ideally be empty
   -l LABELS, --labels LABELS
-                        Comma separated file with sequences and their clade labels to divide the spectrum. If this option is included, treetime mugration will be run to identify changes in the label across the tree. Does not need
-                        to include all taxa. Taxa not included will be given a label of OTHER by default, or OTHER_A if OTHER is already taken. This file should have a header.
+                        Comma separated file with sequences and their clade labels to divide the
+                        spectrum. If this option is included, treetime mugration will be run to
+                        identify changes in the label across the tree. Does not need to include all
+                        taxa. Taxa not included will be given a label of OTHER by default, or OTHER_A
+                        if OTHER is already taken. This file should have a header.
   -lt LABELLED_TREE, --labelled_tree LABELLED_TREE
-                        Tree with state labels, should be the same tree as that provided with -t but with nodes labelled with their state from label_tree.py
+                        Tree with state labels, should be the same tree as that provided with -t but
+                        with nodes labelled with their state from label_tree.py
   -r REFERENCE, --reference REFERENCE
-                        Reference genome sequence containing all sites, used to get context of mutations, not required if using --all_sites
+                        Reference genome sequence containing all sites, used to get context of
+                        mutations, not required if using --all_sites
   -c CONVERSION, --conversion CONVERSION
-                        Conversion file for alignment position to genome position, used to get context of mutations, not required if using --all_sites
-  -g GFF, --gff GFF     GFF reference containing gene coordinates in reference sequence. Used to split mutations into transcription strands and identify synonymous mutations when --synonymous is used
+                        Conversion file for alignment position to genome position, used to get
+                        context of mutations, not required if using --all_sites
+  -g GFF, --gff GFF     GFF reference containing gene coordinates in reference sequence. Used to
+                        split mutations into transcription strands and identify synonymous mutations
+                        when --synonymous is used
   -to TREETIME_OUT, --treetime_out TREETIME_OUT
-                        The location of the directory containing treetime output files from ancestral reconstruction. Only used if option --start_from_treetime is specified, in which case the output files in this directory will be
-                        used to calculate the mutational spectrum
+                        The location of the directory containing treetime output files from ancestral
+                        reconstruction. Only used if option --start_from_treetime is specified, in
+                        which case the output files in this directory will be used to calculate the
+                        mutational spectrum
   -bm BRANCH_MUTATIONS, --branch_mutations BRANCH_MUTATIONS
-                        The minimum number of mutations on a branch to calculate its mutational spectrum. Only used when specifying --branch_specific which will output the spectrum for each branch with more than this number of
-                        mutations separately. Default = 50
+                        The minimum number of mutations on a branch to calculate its mutational
+                        spectrum. Only used when specifying --branch_specific which will output the
+                        spectrum for each branch with more than this number of mutations separately.
+                        Default = 50
 
 treetime command:
   --add_treetime_cmds ADD_TREETIME_CMDS
-                        Additional options to supply to treetime (these are not checked). Supply these together in quotes
+                        Additional options to supply to treetime (these are not checked). Supply
+                        these together in quotes
 ```

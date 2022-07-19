@@ -52,7 +52,7 @@ def main():
         help="sums the mutations in a number of input spectra to form a single output spectrum")
     combine_spectra_subparser = combine_spectra_parser(combine_spectra_subparser)
 
-    combine_spectra_into_catalog_subparser = subparsers.add_parser("catalog",
+    combine_spectra_into_catalog_subparser = subparsers.add_parser("catalogue",
         help="combines multiple input spectra and/or catalogues into a single output catalogue")
     combine_spectra_into_catalog_subparser = combine_spectra_into_catalog_parser(combine_spectra_into_catalog_subparser)
 
