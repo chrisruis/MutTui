@@ -138,7 +138,7 @@ def plotMDS(distances, file_names, colourDict, output_dir):
             colours.append(colourDict[eachFile])
 
     #Write MDS coordinates
-    with open(output_dir + "mds_coordinates.txt", "w") as points_out:
+    with open(output_dir + "distance_mds_coordinates.txt", "w") as points_out:
         points_out.write("Sample\tx_coordinate\ty_coordinate\n")
         for i, coord in zip(file_names, coords):
             points_out.write("%s\t%s\t%s\n" % (i, coord[0], coord[1]))
@@ -157,7 +157,7 @@ def plotMDS(distances, file_names, colourDict, output_dir):
     plt.xlim((c_min, c_max))
     plt.ylim((c_min, c_max))
     plt.tight_layout()
-    fig.savefig(output_dir + "sample_MDS.pdf")
+    fig.savefig(output_dir + "distance_MDS.pdf")
 
 #OLD FUNCTION USED TO PLOT UMAP BASED ON SAMPLE DISTANCES
 #UMAP NO LONGER PLOTTED
@@ -250,7 +250,8 @@ def cluster_spectra(args):
     colourDict, cConversion = getColourDict(args.colour_file)
 
     #MDS of sample distances
-    plotMDS(distances, sampleNames, colourDict, args.output_dir)
+    if args.mds_distance:
+        plotMDS(distances, sampleNames, colourDict, args.output_dir)
 
     return
 
@@ -288,6 +289,11 @@ def cluster_spectra_parser(parser):
                         "match the file paths, as provided to -s. Column 2 is the group to which the sample name belongs or " + 
                         "the colour that the corresponding point will be",
                         type = argparse.FileType("r"))
+    parser.add_argument("--plot_mds_distance",
+                        dest = "mds_distance",
+                        help = "Output an MDS plot based on sample distances",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--colour_labels",
                         dest = "colour_labels",
                         help = "Specify that the sample labels in the file provided with -cl are colours",
