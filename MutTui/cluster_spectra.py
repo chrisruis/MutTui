@@ -9,20 +9,17 @@ from math import dist, sqrt, log2
 import numpy as np
 from scipy import spatial
 from sklearn import manifold
-import umap
 import matplotlib
 matplotlib.use('AGG')
 from matplotlib import pyplot as plt
 from .plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, convertSpectrumProportions
-#from compare_spectra import convertSpectrumProportions
 
 #Converts a set of spectra into a list of dictionaries
-def convertSpectraList(spectra, labels, proportions):
+def convertSpectraList(spectra, labels):
     #List of spectra dictionaries
     spectraList = [{} for i in range(len(spectra))]
 
-    #List of spectra lists
-    sL = [[] for i in range(len(spectra))]
+    sampleNames = list()
 
     #Iterate through the spectra, convert to proportions and add to spectraList
     for i, spectrum in enumerate(spectra):
@@ -32,47 +29,38 @@ def convertSpectraList(spectra, labels, proportions):
             sampleNames.append(spectrum.name)
         
         #Calculate the total number of mutations in the spectrum
-        totalMutations = 0
+        totalMutations = float(0)
         mD = convertSpectrumDictProportions(spectrum)
         for m in mD:
             totalMutations += mD[m]
         
         #Calculate the proportion of each mutation and add to spectraList and sL
         for m in mD:
-            spectraList[i][m] = float(mD[m])/float(totalMutations)
-            sL[i].append(float(mD[m])/float(totalMutations))
+            spectraList[i][m] = mD[m]/totalMutations
     
-    return(spectraList, sL, sampleNames)
+    return(spectraList, sampleNames)
 
 #Converts a multi-sample catalog into a list of dictionaries
-def convertCatalog(catalogFile, proportions):
+def convertCatalog(catalogFile):
     catalog = open(catalogFile.name).readlines()
 
     sampleNames = catalog[0].strip().split(",")[1:]
 
     #List of spectra dictionaries
     spectraList = [{} for i in range(len(sampleNames))]
-    #List of spectra lists
-    sL = [[] for i in range(len(sampleNames))]
 
     #Calculate the total mutations in each sample if the spectra are not proportions
-    if not proportions:
-        totalMutations = [0] * len(sampleNames)
-        for row in catalog[1:]:
-            for sample in range(len(sampleNames)):
-                totalMutations[sample] += int(row.strip().split(",")[sample + 1])
+    totalMutations = [0] * len(sampleNames)
+    for row in catalog[1:]:
+        for sample in range(len(sampleNames)):
+            totalMutations[sample] += float(row.strip().split(",")[sample + 1])
     
     #Calculate the proportion of each mutation in each sample
     for row in catalog[1:]:
         for sample in range(len(sampleNames)):
-            if not proportions:
-                spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])/float(totalMutations[sample])
-                sL[sample].append(float(row.strip().split(",")[sample + 1])/float(totalMutations[sample]))
-            else:
-                spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])
-                sL[sample].append(float(row.strip().split(",")[sample + 1]))
+            spectraList[sample][row.strip().split(",")[0]] = float(row.strip().split(",")[sample + 1])/totalMutations[sample]
     
-    return(spectraList, sL, sampleNames)
+    return(spectraList, sampleNames)
 
 #Converts a given colouring file to a dictionary with files as keys and colours as values and
 #an array of colours for umap
@@ -102,22 +90,12 @@ def getColourDict(colourFile):
         
         return(colourDict, colourList)
 
-#Calculates the distance between 2 given spectra
-def calculateSpectraDistance(spectrum1, spectrum2, method):
-
-    if method == "cosine":
-        s1 = list(spectrum1.values())
-        s2 = list(spectrum2.values())
-        distance = spatial.distance.cosine(s1, s2)
-    
-    elif method == "Bhattacharyya":
-        distance = float(0)
-        for mutation in spectrum1:
-            distance += sqrt(spectrum1[mutation] * spectrum2[mutation])
-        distance = -log2(distance)
-    
-    else:
-        raise RuntimeError("Distance method unknown: choose from cosine (default) or Bhattacharyya")
+#Calculates the cosine distance between 2 given spectra
+#Used to allow multiple distance metrics, now only supports cosine distance
+def calculateSpectraDistance(spectrum1, spectrum2):
+    s1 = list(spectrum1.values())
+    s2 = list(spectrum2.values())
+    distance = spatial.distance.cosine(s1, s2)
     
     return(distance)
 
@@ -128,14 +106,14 @@ def getZerosMatrix(nSamples):
     return(dist_mat)
 
 #Calculates a distance matrix between all pairs of spectra
-def getDistanceMatrix(spectraList, method):
+def getDistanceMatrix(spectraList):
     #Distance matrix of zeros
     distances = getZerosMatrix(len(spectraList))
 
     #Iterate through the pairs of spectra and calculate their distance
     for spectrum1 in range(len(spectraList) - 1):
         for spectrum2 in range((spectrum1 + 1), len(spectraList)):
-            distances[spectrum1, spectrum2] = calculateSpectraDistance(spectraList[spectrum1], spectraList[spectrum2], method)
+            distances[spectrum1, spectrum2] = calculateSpectraDistance(spectraList[spectrum1], spectraList[spectrum2])
             distances[spectrum2, spectrum1] = distances[spectrum1, spectrum2]
     
     return(distances)
@@ -181,6 +159,8 @@ def plotMDS(distances, file_names, colourDict, output_dir):
     plt.tight_layout()
     fig.savefig(output_dir + "sample_MDS.pdf")
 
+#OLD FUNCTION USED TO PLOT UMAP BASED ON SAMPLE DISTANCES
+#UMAP NO LONGER PLOTTED
 #UMAP clustering and plotting
 def plotUMAP(distances, colours, output_dir):
     distanceMap = umap.UMAP(n_neighbors = 5, metric = "cosine").fit(distances)
@@ -193,6 +173,8 @@ def plotUMAP(distances, colours, output_dir):
 
     umapFig.figure.savefig(output_dir + "sample_umap.pdf")
 
+#OLD FUNCTION USED TO RUN UMAP ON A SET OF SPECTRA
+#UMAP NO LONGER USED
 #Calculates a UMAP embedding for a set of spectra
 def extractUMAP(sL, labels, colours, output_dir):
     #Convert to array
@@ -225,8 +207,7 @@ def extractUMAP(sL, labels, colours, output_dir):
 
 
 def cluster_spectra(args):
-
-     #If using labels, verify that there are the same number of labels as spectra
+    #If using labels, verify that there are the same number of labels as spectra
     if args.labels:
         if len(args.spectra) != len(args.labels):
             raise RuntimeError("The number of labels provided with -l must match the number of spectra provided with -s")
@@ -234,60 +215,48 @@ def cluster_spectra(args):
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
-    #Names of spectra to be output
-    sampleNames = []
-
     #If multiple spectra are provided, extract these to lists
     if args.spectra:
-        spectraList, sL, sampleNames = convertSpectraList(args.spectra, args.labels, args.proportions)
+        spectraList, sampleNames = convertSpectraList(args.spectra, args.labels)
     else:
         #Extract the catalog into spectraList
-        spectraList, sL, sampleNames = convertCatalog(args.catalog, args.proportions)
+        spectraList, sampleNames = convertCatalog(args.catalog)
     
     #Calculate distances between all pairs of spectra
-    distances = getDistanceMatrix(spectraList, args.method)
+    distances = getDistanceMatrix(spectraList)
 
-    #Write cosine similarity if using cosine method
-    if args.method == "cosine":
-        similarity_out = open(args.output_dir + "cosine_similarity.csv", "w")
-        similarity_out.write("Sample")
-        for sample in sampleNames:
-            similarity_out.write("," + sample)
-        similarity_out.write("\n")
-        for row in range(len(distances)):
-            similarity_out.write(sampleNames[row])
-            for column in distances[row]:
-                similarity_out.write("," + str(1 - column))
-            similarity_out.write("\n")
-        similarity_out.close()
-
-    #Write distances
-    with open(args.output_dir + "sample_distances.csv", "w") as distances_out:
-        distances_out.write("Sample")
-        for sample in sampleNames:
-            distances_out.write("," + sample)
-        distances_out.write("\n")
-        for row in range(len(distances)):
-            distances_out.write(sampleNames[row])
-            for column in distances[row]:
-                distances_out.write("," + str(column))
-            distances_out.write("\n")
-        distances_out.close()
+    #Write cosine similarity and distances
+    s_out = open(args.output_dir + "cosine_similarity.csv", "w")
+    d_out = open(args.output_dir + "cosine_distances.csv", "w")
+    s_out.write("Sample")
+    d_out.write("Sample")
+    for sample in sampleNames:
+        s_out.write("," + sample)
+        d_out.write("," + sample)
+    s_out.write("\n")
+    d_out.write("\n")
+    for row in range(len(distances)):
+        s_out.write(sampleNames[row])
+        d_out.write(sampleNames[row])
+        for column in distances[row]:
+            s_out.write("," + str(1 - column))
+            d_out.write("," + str(column))
+        s_out.write("\n")
+        d_out.write("\n")
+    s_out.close()
+    d_out.close()
     
     #Extract the colours from the colour file if present
     colourDict, cConversion = getColourDict(args.colour_file)
 
+    #MDS of sample distances
     plotMDS(distances, sampleNames, colourDict, args.output_dir)
-
-    plotUMAP(distances, cConversion, args.output_dir)
-
-    #extractUMAP(sL, sampleNames, cConversion, args.output_dir)
 
     return
 
 def cluster_spectra_parser(parser):
 
-    parser.description = "Calculate distances between a set of input spectra and cluster based on a range of methods"
+    parser.description = "Calculate distances and cluster a set of input spectra. These can be provided as individual spectrum files with -s or as a combined catalogue with -c"
 
     spectra = parser.add_mutually_exclusive_group(required = True)
     spectra.add_argument("-s",
@@ -301,19 +270,13 @@ def cluster_spectra_parser(parser):
                         dest = "catalog",
                         help = "Multi-sample catalog containing spectra, samples as columns and mutation counts as rows",
                         type = argparse.FileType("r"))
+    
     parser.add_argument("-l",
                         "--labels",
                         dest = "labels",
                         nargs = "+",
                         help = "Labels for each spectrum provided with -s. If not provided, the file names will be used as labels",
                         default = None)
-    parser.add_argument("-m",
-                        "--method",
-                        dest = "method",
-                        help = "The method used to calculate distances between pairs of spectra. " + 
-                        "Options are cosine similarity (specified with cosine), Bhattacharyya and JS (Jensen-Shannon). Cosine " +
-                        "similarity is default",
-                        default = "cosine")
     parser.add_argument("-cl",
                         "--colours",
                         dest = "colour_file",
@@ -328,12 +291,6 @@ def cluster_spectra_parser(parser):
     parser.add_argument("--colour_labels",
                         dest = "colour_labels",
                         help = "Specify that the sample labels in the file provided with -cl are colours",
-                        action = "store_true",
-                        default = False)
-    parser.add_argument("--proportions",
-                        dest = "proportions",
-                        help = "Specify if the spectrum to be clustered are proportions rather than numbers of mutations, " + 
-                        "e.g. if comparing SigProfilerExtractor signatures",
                         action = "store_true",
                         default = False)
     parser.add_argument("-o",
