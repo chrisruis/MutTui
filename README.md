@@ -1,6 +1,6 @@
 # MutTui
 
-[![Build Status](https://github.com/chrisruis/workflows/MutTui-CI/badge.svg)](https://github.com/chrisruis/MutTui/actions)
+[![MutTui-CI](https://github.com/chrisruis/MutTui/actions/workflows/muttui_test.yml/badge.svg)](https://github.com/chrisruis/MutTui/actions/workflows/muttui_test.yml)
 
 MutTui pipeline to reconstruct mutational spectra for bacterial and viral datasets
 
