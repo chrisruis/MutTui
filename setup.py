@@ -29,8 +29,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/chrisruis/MutTui",
     install_requires=[
-        'gffutils', 'biopython', 'phylo-treetime', 'PyQt5', 'matplotlib', 'pandas', 'sklearn',
-        'umap'
+        'gffutils', 'biopython', 'phylo-treetime', 'PyQt5', 'matplotlib', 'pandas', 'sklearn'
     ],
     python_requires='>=3.8.0',
     packages=['MutTui'],
