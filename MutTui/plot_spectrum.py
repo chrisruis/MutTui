@@ -108,6 +108,61 @@ def plotSpectrumFromDict(spectrum, outFile):
     else:
         plt.savefig(outFile.name)
 
+#Plots a RNA SBS spectrum
+def plotRNA(spectrum, proportion, outFile):
+    allM = ["A[C>A]A","A[C>A]C","A[C>A]G","A[C>A]T","C[C>A]A","C[C>A]C","C[C>A]G","C[C>A]T","G[C>A]A","G[C>A]C","G[C>A]G","G[C>A]T","T[C>A]A","T[C>A]C","T[C>A]G","T[C>A]T","A[C>G]A","A[C>G]C","A[C>G]G","A[C>G]T","C[C>G]A","C[C>G]C","C[C>G]G","C[C>G]T","G[C>G]A","G[C>G]C","G[C>G]G","G[C>G]T","T[C>G]A","T[C>G]C","T[C>G]G","T[C>G]T","A[C>T]A","A[C>T]C","A[C>T]G","A[C>T]T","C[C>T]A","C[C>T]C","C[C>T]G","C[C>T]T","G[C>T]A","G[C>T]C","G[C>T]G","G[C>T]T","T[C>T]A","T[C>T]C","T[C>T]G","T[C>T]T","A[T>A]A","A[T>A]C","A[T>A]G","A[T>A]T","C[T>A]A","C[T>A]C","C[T>A]G","C[T>A]T","G[T>A]A","G[T>A]C","G[T>A]G","G[T>A]T","T[T>A]A","T[T>A]C","T[T>A]G","T[T>A]T","A[T>C]A","A[T>C]C","A[T>C]G","A[T>C]T","C[T>C]A","C[T>C]C","C[T>C]G","C[T>C]T","G[T>C]A","G[T>C]C","G[T>C]G","G[T>C]T","T[T>C]A","T[T>C]C","T[T>C]G","T[T>C]T","A[T>G]A","A[T>G]C","A[T>G]G","A[T>G]T","C[T>G]A","C[T>G]C","C[T>G]G","C[T>G]T","G[T>G]A","G[T>G]C","G[T>G]G","G[T>G]T","T[T>G]A","T[T>G]C","T[T>G]G","T[T>G]T","A[G>T]A","A[G>T]C","A[G>T]G","A[G>T]T","C[G>T]A","C[G>T]C","C[G>T]G","C[G>T]T","G[G>T]A","G[G>T]C","G[G>T]G","G[G>T]T","T[G>T]A","T[G>T]C","T[G>T]G","T[G>T]T","A[G>C]A","A[G>C]C","A[G>C]G","A[G>C]T","C[G>C]A","C[G>C]C","C[G>C]G","C[G>C]T","G[G>C]A","G[G>C]C","G[G>C]G","G[G>C]T","T[G>C]A","T[G>C]C","T[G>C]G","T[G>C]T","A[G>A]A","A[G>A]C","A[G>A]G","A[G>A]T","C[G>A]A","C[G>A]C","C[G>A]G","C[G>A]T","G[G>A]A","G[G>A]C","G[G>A]G","G[G>A]T","T[G>A]A","T[G>A]C","T[G>A]G","T[G>A]T","A[A>T]A","A[A>T]C","A[A>T]G","A[A>T]T","C[A>T]A","C[A>T]C","C[A>T]G","C[A>T]T","G[A>T]A","G[A>T]C","G[A>T]G","G[A>T]T","T[A>T]A","T[A>T]C","T[A>T]G","T[A>T]T","A[A>G]A","A[A>G]C","A[A>G]G","A[A>G]T","C[A>G]A","C[A>G]C","C[A>G]G","C[A>G]T","G[A>G]A","G[A>G]C","G[A>G]G","G[A>G]T","T[A>G]A","T[A>G]C","T[A>G]G","T[A>G]T","A[A>C]A","A[A>C]C","A[A>C]G","A[A>C]T","C[A>C]A","C[A>C]C","C[A>C]G","C[A>C]T","G[A>C]A","G[A>C]C","G[A>C]G","G[A>C]T","T[A>C]A","T[A>C]C","T[A>C]G","T[A>C]T"]
+
+    #Colours of the bars
+    colourSet = ["blue", "black", "red", "grey", "green", "pink", "royalblue", "dimgrey", "coral", "silver", "darkgreen", "purple"]
+    colours = ["blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","blue","black","black","black","black","black","black","black","black","black","black","black","black","black","black","black","black","red","red","red","red","red","red","red","red","red","red","red","red","red","red","red","red","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","grey","green","green","green","green","green","green","green","green","green","green","green","green","green","green","green","green","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","pink","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","royalblue","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","dimgrey","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","coral","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","silver","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","darkgreen","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple","purple"]
+    
+    #x axis of 1:192
+    x = list()
+    for i in range(1, 193):
+        x.append(i)
+    
+    if proportion:
+        tM = float(0) 
+        for m in allM:
+            tM += float(spectrum[m])
+    else:
+        tM = float(1)
+    
+    #Extract number/proportion of each mutation to plot
+    y = list()
+    for m in allM:
+        y.append(float(spectrum[m])/tM)
+    
+    #Used to plot the rectangles above the plot containing the mutation type
+    rect_lower = float(np.max(y)) + float(np.max(y) * 0.05)
+    rect_width = float(np.max(y)) * 0.1
+    #Coordinates of the mutation type rectangles and text
+    mutation_types = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G", "G>T", "G>C", "G>A", "A>T", "A>G", "A>C"]
+    rect_coords = [-0.5, 15.5, 31.5, 47.5, 63.5, 79.5, 95.5, 111.5, 127.5, 143.5, 159.5, 175.5]
+    text_coords = [1, 17, 33, 49, 65, 81, 97, 113, 129, 145, 161, 177]
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.bar(x, y, color = colours)
+    for i, rect in enumerate(rect_coords):
+        ax.add_patch(plt.Rectangle((rect, rect_lower), 16, rect_width, facecolor = colourSet[i]))
+        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], color = "white", fontweight = "bold")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.locator_params(axis = "x", nbins = 192)
+    ax.set_xticklabels([""] * len(x))
+    plt.xlabel("Mutation")
+    if proportion:
+        plt.ylabel("Proportion of mutations")
+    else:
+        plt.ylabel("Number of mutations")
+    plt.margins(0)
+    
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
+
 #Plots a SBS spectrum split into transcribed and untranscribed strands
 def plotSB(spectrum, proportion, outFile):
     allM = ["tACAA","uACAA","tACAC","uACAC","tACAG","uACAG","tACAT","uACAT","tCCAA","uCCAA","tCCAC","uCCAC","tCCAG","uCCAG","tCCAT","uCCAT","tGCAA","uGCAA","tGCAC","uGCAC","tGCAG","uGCAG","tGCAT","uGCAT","tTCAA","uTCAA","tTCAC","uTCAC","tTCAG","uTCAG","tTCAT","uTCAT","tACGA","uACGA","tACGC","uACGC","tACGG","uACGG","tACGT","uACGT","tCCGA","uCCGA","tCCGC","uCCGC","tCCGG","uCCGG","tCCGT","uCCGT","tGCGA","uGCGA","tGCGC","uGCGC","tGCGG","uGCGG","tGCGT","uGCGT","tTCGA","uTCGA","tTCGC","uTCGC","tTCGG","uTCGG","tTCGT","uTCGT","tACTA","uACTA","tACTC","uACTC","tACTG","uACTG","tACTT","uACTT","tCCTA","uCCTA","tCCTC","uCCTC","tCCTG","uCCTG","tCCTT","uCCTT","tGCTA","uGCTA","tGCTC","uGCTC","tGCTG","uGCTG","tGCTT","uGCTT","tTCTA","uTCTA","tTCTC","uTCTC","tTCTG","uTCTG","tTCTT","uTCTT","tATAA","uATAA","tATAC","uATAC","tATAG","uATAG","tATAT","uATAT","tCTAA","uCTAA","tCTAC","uCTAC","tCTAG","uCTAG","tCTAT","uCTAT","tGTAA","uGTAA","tGTAC","uGTAC","tGTAG","uGTAG","tGTAT","uGTAT","tTTAA","uTTAA","tTTAC","uTTAC","tTTAG","uTTAG","tTTAT","uTTAT","tATCA","uATCA","tATCC","uATCC","tATCG","uATCG","tATCT","uATCT","tCTCA","uCTCA","tCTCC","uCTCC","tCTCG","uCTCG","tCTCT","uCTCT","tGTCA","uGTCA","tGTCC","uGTCC","tGTCG","uGTCG","tGTCT","uGTCT","tTTCA","uTTCA","tTTCC","uTTCC","tTTCG","uTTCG","tTTCT","uTTCT","tATGA","uATGA","tATGC","uATGC","tATGG","uATGG","tATGT","uATGT","tCTGA","uCTGA","tCTGC","uCTGC","tCTGG","uCTGG","tCTGT","uCTGT","tGTGA","uGTGA","tGTGC","uGTGC","tGTGG","uGTGG","tGTGT","uGTGT","tTTGA","uTTGA","tTTGC","uTTGC","tTTGG","uTTGG","tTTGT","uTTGT"]
@@ -404,6 +459,8 @@ def plot_spectrum(args):
         plotDouble(spectrum, args.plot_proportion, args.outFile)
     elif args.sb:
         plotSB(spectrum, args.plot_proportion, args.outFile)
+    elif args.rna:
+        plotRNA(spectrum, args.plot_proportion, args.outFile)
     else:
         plotSpectrumFromDict(spectrum, args.outFile)
 
