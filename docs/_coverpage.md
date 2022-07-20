@@ -1,6 +1,6 @@
 <!-- _coverpage.md -->
 
-# MutTui
+<img src="_figures/muttui_logo.png" width="450">
 
 > A Pathogen Mutational Spectrum Pipeline.
 
