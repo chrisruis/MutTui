@@ -1,8 +1,11 @@
-# MutTui
-
 [![MutTui-CI](https://github.com/chrisruis/MutTui/actions/workflows/muttui_test.yml/badge.svg)](https://github.com/chrisruis/MutTui/actions/workflows/muttui_test.yml)
 
-MutTui pipeline to reconstruct mutational spectra for bacterial and viral datasets
+<p align="center">
+<img src="https://github.com/gtonkinhill/MutTui/blob/main/docs/_figures/muttui_logo.png" alt="alt text" width="500">
+</p>
+
+
+A pipeline to reconstruct mutational spectra for bacterial and viral datasets
 
 ## Documentation
 
