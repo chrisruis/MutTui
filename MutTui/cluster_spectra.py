@@ -6,9 +6,10 @@
 import os
 import argparse
 from math import dist, sqrt, log2
+from matplotlib import mlab
 import numpy as np
 from scipy import spatial
-from sklearn import manifold
+from sklearn import manifold, decomposition
 import matplotlib
 matplotlib.use('AGG')
 from matplotlib import pyplot as plt
@@ -117,6 +118,42 @@ def getDistanceMatrix(spectraList):
             distances[spectrum2, spectrum1] = distances[spectrum1, spectrum2]
     
     return(distances)
+
+#Converts a list of spectrum dictionaries to an array
+def arraySpectra(spectra):
+    #Extract mutations from keys
+    m = spectra[0].keys()
+
+    sa = np.zeros((len(spectra), 96))
+    
+    for i, s in enumerate(spectra):
+        for j, em in enumerate(m):
+            sa[i,j] = s[em]
+    
+    return(sa)
+
+#PCA of SBS spectra based on mutation proportions
+def sbsPCA(spectra, sn, output_dir):
+    #PCA of spectra
+    pca = decomposition.PCA(n_components = 2)
+    pc = pca.fit_transform(spectra)
+
+    #Extract coordinates to plot
+    x = list()
+    y = list()
+    for i in pc:
+        x.append(i[0])
+        y.append(i[1])
+    
+    #Plot PCA
+    plt.style.use("ggplot")
+    fig = plt.figure()
+    plt.scatter(x, y)#, color = colours)
+    plt.grid(True)
+    plt.xlabel("Principle component 1")
+    plt.ylabel("Principle component 2")
+    plt.tight_layout()
+    fig.savefig(output_dir + "SBS_PCA.pdf")
 
 #Plots a multidimensional scaling based on a given distance matrix
 def plotMDS(distances, file_names, colourDict, output_dir):
@@ -249,6 +286,12 @@ def cluster_spectra(args):
     #Extract the colours from the colour file if present
     colourDict, cConversion = getColourDict(args.colour_file)
 
+    #Extract spectra to arrays
+    sA = arraySpectra(spectraList)
+
+    #MDS of mutation proportions
+    sbsPCA(sA, sampleNames, args.output_dir)
+
     #MDS of sample distances
     if args.mds_distance:
         plotMDS(distances, sampleNames, colourDict, args.output_dir)
@@ -257,19 +300,19 @@ def cluster_spectra(args):
 
 def cluster_spectra_parser(parser):
 
-    parser.description = "Calculate distances and cluster a set of input spectra. These can be provided as individual spectrum files with -s or as a combined catalogue with -c"
+    parser.description = "Calculate distances and cluster a set of input SBS spectra. These can be provided as individual spectrum files with -s or as a combined catalogue with -c"
 
     spectra = parser.add_mutually_exclusive_group(required = True)
     spectra.add_argument("-s",
                         "--spectra",
                         dest = "spectra",
                         nargs = "+",
-                        help = "Spectrum files to be clustered. All files specified with -s will be clustered",
+                        help = "SBS spectrum files to be clustered. All files specified with -s will be clustered",
                         type = argparse.FileType("r"))
     spectra.add_argument("-c",
                         "--catalog",
                         dest = "catalog",
-                        help = "Multi-sample catalog containing spectra, samples as columns and mutation counts as rows",
+                        help = "Multi-sample catalogue containing SBS spectra, samples as columns and mutation counts/proportions as rows",
                         type = argparse.FileType("r"))
     
     parser.add_argument("-l",
