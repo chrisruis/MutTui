@@ -262,6 +262,8 @@ def muttui(args):
     #Branch categories as keys, spectra as values
     spectraDict = {}
     doubleSpectraDict = {}
+    if args.strand_bias:
+        sbDict = {}
     #Create empty spectrum for each branch category
     if args.rna:
         for label in treeLabels:
@@ -270,6 +272,8 @@ def muttui(args):
         for label in treeLabels:
             spectraDict[label] = getMutationDict()
             doubleSpectraDict[label] = getDoubleSubstitutionDict()
+            if args.strand_bias:
+                sbDict[label] = getStrandBiasDict()
     
     #The 4 nucleotides, used to check if mutated, upstream and downstream bases are nucleotides
     nucleotides = ["A","C","G","T"]
@@ -346,7 +350,18 @@ def muttui(args):
                         else:
                             spectraDict[branchCategory][complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
                             outAllMutations.write(complement(mutation[0]) + str(mutation[1]) + complement(mutation[3]) + "," + complement(mutation[0]) + str(mutation[2]) + complement(mutation[3]) + "," + complement(mutationContext[1]) + "[" + complement(mutation[0]) + ">" + complement(mutation[3]) + "]" + complement(mutationContext[0]) + "," + clade.name + "\n")
-                
+                    
+                        #If calculating strand bias, check if the mutation position is in a gene, if so extract its strand bias
+                        if (args.strand_bias) and (mutation[2] in positionGene):
+                            sb = getStrandBias(mutation, updatedReference, geneCoordinates, positionGene)
+                            #Exclude genes in multiple genes on different strands
+                            if sb is not None:
+                                #Add to the corresponding dictionary
+                                if (sb + mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]) in sbDict[branchCategory]:
+                                    sbDict[branchCategory][sb + mutationContext[0] + mutation[0] + mutation[3] + mutationContext[1]] += 1
+                                else:
+                                    sbDict[branchCategory][sb + complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
+
                 #Add double substitutions to the corresponding spectrum
                 if len(doubleSubstitutions) > 0:
                     dsIter = iter(doubleSubstitutions)
@@ -407,6 +422,14 @@ def muttui(args):
         doubleFormat = convertSpectrumFormat(doubleSpectraDict[eachLabel])
         plotDouble(doubleFormat, False, outDoubleSpectrum)
         outDoubleSpectrum.close()
+
+        #Write the strand bias spectrum
+        if args.strand_bias:
+            outSB = open(args.output_dir + "strand_bias_label_" + eachLabel + ".csv", "w")
+            outSB.write("Strand,Substitution,Number_of_mutations\n")
+            for sbm in sbDict[eachLabel]:
+                outSB.write(sbm[0] + "," + sbm[1:] + "," + str(sbDict[eachLabel][sbm]) + "\n")
+            outSB.close()
     
     #Write the spectra to a combined catalog if there is more than 1 label
     if len(spectraDict.keys()) > 1:
