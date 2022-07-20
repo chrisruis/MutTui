@@ -8,6 +8,7 @@ import argparse
 import numpy as np
 from scipy import spatial
 from sklearn import manifold, decomposition
+import pandas as pd
 import matplotlib
 matplotlib.use('AGG')
 from matplotlib import pyplot as plt
@@ -131,7 +132,7 @@ def arraySpectra(spectra):
     return(sa)
 
 #PCA of SBS spectra based on mutation proportions
-def sbsPCA(spectra, sn, output_dir):
+def sbsPCA(spectra, sn, col, cl, output_dir):
     #PCA of spectra
     pca = decomposition.PCA(n_components = 2)
     pc = pca.fit_transform(spectra)
@@ -143,16 +144,34 @@ def sbsPCA(spectra, sn, output_dir):
         x.append(i[0])
         y.append(i[1])
     
+    #Colours for plot
+    if col is None:
+        colours = ["black" for i in range(len(sn))]
+    else:
+        colours = []
+        for s in sn:
+            colours.append(col[s])
+    
     #Write PCA coordinates
     with open(output_dir + "SBS_PCA_coordinates.csv", "w") as outP:
         outP.write("Sample,Principle_component_1,Principle_component_2\n")
         for es in range(len(sn)):
             outP.write(sn[es] + "," + str(x[es]) + "," + str(y[es]) + "\n")
     
+    #Data frame for plotting
+    pDF = pd.DataFrame({"x": x, "y": y, "cols": colours})
+    
     #Plot PCA
     plt.style.use("ggplot")
     fig = plt.figure()
-    plt.scatter(x, y)#, color = colours)
+    #Colour column is labels
+    if col and not cl:
+        groups = pDF.groupby("cols")
+        for name, group in groups:
+            plt.scatter(group.x, group.y, label = name)
+    #Colour column is colours
+    else:
+        plt.scatter(pDF.x, pDF.y, color = pDF.cols)
     plt.grid(True)
     plt.xlabel("Principle component 1")
     plt.ylabel("Principle component 2")
@@ -294,7 +313,7 @@ def cluster_spectra(args):
     sA = arraySpectra(spectraList)
 
     #MDS of mutation proportions
-    sbsPCA(sA, sampleNames, args.output_dir)
+    sbsPCA(sA, sampleNames, colourDict, args.colour_labels, args.output_dir)
 
     #MDS of sample distances
     if args.mds_distance:
@@ -333,9 +352,18 @@ def cluster_spectra_parser(parser):
                         "This file should contain 2 columns separated by tabs with no header. Column 1 is the " + 
                         "name of the sample. If providing labels with -l, these names should match the labels. If " +
                         "using a catalog, these names should match the column names. If using file paths, these names should " +
-                        "match the file paths, as provided to -s. Column 2 is the group to which the sample name belongs or " + 
-                        "the colour that the corresponding point will be",
+                        "match the file paths, as provided to -s. Column 2 contains information for colouring. This can either be " + 
+                        "the group to which the sample name belongs (e.g. enteric or group1) or a colour for each sample. If " + 
+                        "using colours, add the --colour_labels option",
                         type = argparse.FileType("r"))
+    parser.add_argument("--mutation_types",
+                        dest = "mt",
+                        help = "Run PCA on mutation proportions within each of the 6 mutation types. This will output " + 
+                        "6 additional csv files and 6 additional plots, one per mutation type in each case. This calculates " + 
+                        "the proportion of each contextual mutation within the respective mutation type (e.g. the proportion of " + 
+                        "C>A mutations that are T[C>A]G) ands runs a PCA on those 16 proportions across spectra",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--plot_mds_distance",
                         dest = "mds_distance",
                         help = "Output an MDS plot based on sample distances",
