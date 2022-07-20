@@ -143,6 +143,12 @@ def sbsPCA(spectra, sn, output_dir):
         x.append(i[0])
         y.append(i[1])
     
+    #Write PCA coordinates
+    with open(output_dir + "SBS_PCA_coordinates.csv", "w") as outP:
+        outP.write("Sample,Principle_component_1,Principle_component_2\n")
+        for es in range(len(sn)):
+            outP.write(sn[es] + "," + str(x[es]) + "," + str(y[es]) + "\n")
+    
     #Plot PCA
     plt.style.use("ggplot")
     fig = plt.figure()
