@@ -4,7 +4,6 @@ import argparse
 from Bio import AlignIO, Phylo
 from Bio.Seq import Seq
 from collections import OrderedDict, defaultdict
-import operator
 import numpy as np
 import array
 from treetime import *

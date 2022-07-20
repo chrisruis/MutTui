@@ -79,7 +79,7 @@ Use this option if you have already run treetime ancestral reconstruction and wa
 
 #### --strand_bias
 
-Use this option to split the calculated SBS spectrum into transcribed and untranscribed strands, typically to examine strand bias. Mutations are included in the transcribed strand if the pyrimidine is on the transcribed strand and included in the nontranscribed strand if the pyrimidine is on the nontranscribed strand. Mutations that are not within a gene or and in multiple overlapping genes with different orientations are not included in these spectra. Mutations are included if they are in multiple overlapping genes that are in the same orientation
+Use this option to split the calculated SBS spectrum into transcribed and untranscribed strands, typically to examine strand bias. Mutations are included in the transcribed strand if the pyrimidine is on the transcribed strand and included in the nontranscribed strand if the pyrimidine is on the nontranscribed strand. Mutations that are not within a gene or are in multiple overlapping genes with different orientations are not included in these spectra. Mutations are included if they are in multiple overlapping genes that are in the same orientation
 
 This outputs 2 additional files per branch label - strand_bias_label_X.csv containing the mutation counts and strand_bias_label_X.pdf containing a plot of the mutation counts
 
