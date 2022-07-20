@@ -359,7 +359,8 @@ def muttui(args):
                                     sbDict[branchCategory][sb + complement(mutationContext[1]) + complement(mutation[0]) + complement(mutation[3]) + complement(mutationContext[0])] += 1
 
                 #Add double substitutions to the corresponding spectrum
-                if len(doubleSubstitutions) > 0:
+                ####No double substitution for RNA currently, will be updated
+                if (len(doubleSubstitutions) > 0) and (not args.rna):
                     dsIter = iter(doubleSubstitutions)
                     for s1, s2 in zip(dsIter, dsIter):
                         #Check if both mutations involve nucleotides, if not write both to the unused file
@@ -390,7 +391,10 @@ def muttui(args):
         #Plot the spectrum
         outSpectrum = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".pdf", "w")
         spectrumFormat = convertSpectrumFormat(spectraDict[eachLabel])
-        plotSpectrumFromDict(spectrumFormat, outSpectrum)
+        if not args.rna:
+            plotSpectrumFromDict(spectrumFormat, outSpectrum)
+        else:
+            plotRNA(spectrumFormat, False, outSpectrum)
         outSpectrum.close()
 
         #Calculate the number of each type of mutation
@@ -407,17 +411,19 @@ def muttui(args):
         plotMutationType(mtCounts, outMTSpectrum)
         outMTSpectrum.close()
 
-        #Write the double substitution spectrum
-        outDouble = open(args.output_dir + "DBS_label_" + eachLabel + ".csv", "w")
-        outDouble.write("Substitution,Number_of_mutations\n")
-        for eachMutation in doubleSpectraDict[eachLabel]:
-            outDouble.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(doubleSpectraDict[eachLabel][eachMutation]) + "\n")
+        ####No double substitution for RNA currently, will be updated
+        if not args.rna:
+            #Write the double substitution spectrum
+            outDouble = open(args.output_dir + "DBS_label_" + eachLabel + ".csv", "w")
+            outDouble.write("Substitution,Number_of_mutations\n")
+            for eachMutation in doubleSpectraDict[eachLabel]:
+                outDouble.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(doubleSpectraDict[eachLabel][eachMutation]) + "\n")
         
-        #Plot the double substitution spectrum
-        outDoubleSpectrum = open(args.output_dir + "DBS_label_" + eachLabel + ".pdf", "w")
-        doubleFormat = convertSpectrumFormat(doubleSpectraDict[eachLabel])
-        plotDouble(doubleFormat, False, outDoubleSpectrum)
-        outDoubleSpectrum.close()
+            #Plot the double substitution spectrum
+            outDoubleSpectrum = open(args.output_dir + "DBS_label_" + eachLabel + ".pdf", "w")
+            doubleFormat = convertSpectrumFormat(doubleSpectraDict[eachLabel])
+            plotDouble(doubleFormat, False, outDoubleSpectrum)
+            outDoubleSpectrum.close()
 
         #Write the strand bias spectrum
         if args.strand_bias:
