@@ -1,7 +1,7 @@
 [![MutTui-CI](https://github.com/chrisruis/MutTui/actions/workflows/muttui_test.yml/badge.svg)](https://github.com/chrisruis/MutTui/actions/workflows/muttui_test.yml)
 
 <p align="center">
-<img src="https://github.com/gtonkinhill/MutTui/blob/main/docs/_figures/muttui_logo.png" alt="alt text" width="500">
+<img src="https://github.com/chrisruis/MutTui/blob/main/docs/_figures/muttui_logo.png" alt="alt text" width="500">
 </p>
 
 
