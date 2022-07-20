@@ -413,6 +413,28 @@ def extractSynonymous(branchMutations, updatedReference, geneCoordinates, positi
     
     return(branchMutations)
 
+#Identifies the strand bias of each mutation
+def getStrandBias(mutation, updatedReference, geneCoordinates, positionGene):
+    #print(mutation)
+    #Strands of the genes the mutation is in, used to exclude mutations in multiple genes on opposing strands
+    ss = set()
+
+    #Get the strand of each gene the mutation is in and add to ss
+    for g in positionGene[mutation[2]].split("____"):
+        ss.add(geneCoordinates[g][2])
+    
+    #Transition mutations
+    transitions = ["C", "T"]
+    
+    #Check if the mutation is in multiple genes on different strands, if so exclude
+    if len(ss) == 1:
+        if (("+" in ss) and (mutation[0] in transitions)) or (("-" in ss) and (mutation[0] not in transitions)):
+            return("t")
+        else:
+            return("u")
+    else:
+        return(None)
+
 #Identifies the context of a mutation
 def getContext(mutation, updatedReference):
     return(updatedReference[mutation[2] - 2], updatedReference[mutation[2]])
@@ -428,7 +450,7 @@ def complement(base):
     elif base == "T":
         return "A"
 
-#Creates an empty mutational spcetrum dictionary for DNA datasets, i.e. combining symmetric mutations
+#Creates an empty mutational spectrum dictionary for DNA datasets, i.e. combining symmetric mutations
 def getMutationDict():
     mutation = OrderedDict()
     mutation["ACAA"] = 0
@@ -530,7 +552,206 @@ def getMutationDict():
 
     return(mutation)
 
-#Creates an empty mutational spcetrum dictionary for DNA datasets, i.e. combining symmetric mutations
+#Creates an empty strand bias spectrum dictionary for DNA datasets, each mutation is in the dictionary twice:
+#once on the transcribed strand (preceded by t) and once on the untranscribed strand (preceded by u)
+def getStrandBiasDict():
+    mutation = OrderedDict()
+    mutation["tACAA"] = 0
+    mutation["tACAC"] = 0
+    mutation["tACAG"] = 0
+    mutation["tACAT"] = 0
+    mutation["tCCAA"] = 0
+    mutation["tCCAC"] = 0
+    mutation["tCCAG"] = 0
+    mutation["tCCAT"] = 0
+    mutation["tGCAA"] = 0
+    mutation["tGCAC"] = 0
+    mutation["tGCAG"] = 0
+    mutation["tGCAT"] = 0
+    mutation["tTCAA"] = 0
+    mutation["tTCAC"] = 0
+    mutation["tTCAG"] = 0
+    mutation["tTCAT"] = 0
+    mutation["tACGA"] = 0
+    mutation["tACGC"] = 0
+    mutation["tACGG"] = 0
+    mutation["tACGT"] = 0
+    mutation["tCCGA"] = 0
+    mutation["tCCGC"] = 0
+    mutation["tCCGG"] = 0
+    mutation["tCCGT"] = 0
+    mutation["tGCGA"] = 0
+    mutation["tGCGC"] = 0
+    mutation["tGCGG"] = 0
+    mutation["tGCGT"] = 0
+    mutation["tTCGA"] = 0
+    mutation["tTCGC"] = 0
+    mutation["tTCGG"] = 0
+    mutation["tTCGT"] = 0
+    mutation["tACTA"] = 0
+    mutation["tACTC"] = 0
+    mutation["tACTG"] = 0
+    mutation["tACTT"] = 0
+    mutation["tCCTA"] = 0
+    mutation["tCCTC"] = 0
+    mutation["tCCTG"] = 0
+    mutation["tCCTT"] = 0
+    mutation["tGCTA"] = 0
+    mutation["tGCTC"] = 0
+    mutation["tGCTG"] = 0
+    mutation["tGCTT"] = 0
+    mutation["tTCTA"] = 0
+    mutation["tTCTC"] = 0
+    mutation["tTCTG"] = 0
+    mutation["tTCTT"] = 0
+    mutation["tATAA"] = 0
+    mutation["tATAC"] = 0
+    mutation["tATAG"] = 0
+    mutation["tATAT"] = 0
+    mutation["tCTAA"] = 0
+    mutation["tCTAC"] = 0
+    mutation["tCTAG"] = 0
+    mutation["tCTAT"] = 0
+    mutation["tGTAA"] = 0
+    mutation["tGTAC"] = 0
+    mutation["tGTAG"] = 0
+    mutation["tGTAT"] = 0
+    mutation["tTTAA"] = 0
+    mutation["tTTAC"] = 0
+    mutation["tTTAG"] = 0
+    mutation["tTTAT"] = 0
+    mutation["tATCA"] = 0
+    mutation["tATCC"] = 0
+    mutation["tATCG"] = 0
+    mutation["tATCT"] = 0
+    mutation["tCTCA"] = 0
+    mutation["tCTCC"] = 0
+    mutation["tCTCG"] = 0
+    mutation["tCTCT"] = 0
+    mutation["tGTCA"] = 0
+    mutation["tGTCC"] = 0
+    mutation["tGTCG"] = 0
+    mutation["tGTCT"] = 0
+    mutation["tTTCA"] = 0
+    mutation["tTTCC"] = 0
+    mutation["tTTCG"] = 0
+    mutation["tTTCT"] = 0
+    mutation["tATGA"] = 0
+    mutation["tATGC"] = 0
+    mutation["tATGG"] = 0
+    mutation["tATGT"] = 0
+    mutation["tCTGA"] = 0
+    mutation["tCTGC"] = 0
+    mutation["tCTGG"] = 0
+    mutation["tCTGT"] = 0
+    mutation["tGTGA"] = 0
+    mutation["tGTGC"] = 0
+    mutation["tGTGG"] = 0
+    mutation["tGTGT"] = 0
+    mutation["tTTGA"] = 0
+    mutation["tTTGC"] = 0
+    mutation["tTTGG"] = 0
+    mutation["tTTGT"] = 0
+    mutation["uACAA"] = 0
+    mutation["uACAC"] = 0
+    mutation["uACAG"] = 0
+    mutation["uACAT"] = 0
+    mutation["uCCAA"] = 0
+    mutation["uCCAC"] = 0
+    mutation["uCCAG"] = 0
+    mutation["uCCAT"] = 0
+    mutation["uGCAA"] = 0
+    mutation["uGCAC"] = 0
+    mutation["uGCAG"] = 0
+    mutation["uGCAT"] = 0
+    mutation["uTCAA"] = 0
+    mutation["uTCAC"] = 0
+    mutation["uTCAG"] = 0
+    mutation["uTCAT"] = 0
+    mutation["uACGA"] = 0
+    mutation["uACGC"] = 0
+    mutation["uACGG"] = 0
+    mutation["uACGT"] = 0
+    mutation["uCCGA"] = 0
+    mutation["uCCGC"] = 0
+    mutation["uCCGG"] = 0
+    mutation["uCCGT"] = 0
+    mutation["uGCGA"] = 0
+    mutation["uGCGC"] = 0
+    mutation["uGCGG"] = 0
+    mutation["uGCGT"] = 0
+    mutation["uTCGA"] = 0
+    mutation["uTCGC"] = 0
+    mutation["uTCGG"] = 0
+    mutation["uTCGT"] = 0
+    mutation["uACTA"] = 0
+    mutation["uACTC"] = 0
+    mutation["uACTG"] = 0
+    mutation["uACTT"] = 0
+    mutation["uCCTA"] = 0
+    mutation["uCCTC"] = 0
+    mutation["uCCTG"] = 0
+    mutation["uCCTT"] = 0
+    mutation["uGCTA"] = 0
+    mutation["uGCTC"] = 0
+    mutation["uGCTG"] = 0
+    mutation["uGCTT"] = 0
+    mutation["uTCTA"] = 0
+    mutation["uTCTC"] = 0
+    mutation["uTCTG"] = 0
+    mutation["uTCTT"] = 0
+    mutation["uATAA"] = 0
+    mutation["uATAC"] = 0
+    mutation["uATAG"] = 0
+    mutation["uATAT"] = 0
+    mutation["uCTAA"] = 0
+    mutation["uCTAC"] = 0
+    mutation["uCTAG"] = 0
+    mutation["uCTAT"] = 0
+    mutation["uGTAA"] = 0
+    mutation["uGTAC"] = 0
+    mutation["uGTAG"] = 0
+    mutation["uGTAT"] = 0
+    mutation["uTTAA"] = 0
+    mutation["uTTAC"] = 0
+    mutation["uTTAG"] = 0
+    mutation["uTTAT"] = 0
+    mutation["uATCA"] = 0
+    mutation["uATCC"] = 0
+    mutation["uATCG"] = 0
+    mutation["uATCT"] = 0
+    mutation["uCTCA"] = 0
+    mutation["uCTCC"] = 0
+    mutation["uCTCG"] = 0
+    mutation["uCTCT"] = 0
+    mutation["uGTCA"] = 0
+    mutation["uGTCC"] = 0
+    mutation["uGTCG"] = 0
+    mutation["uGTCT"] = 0
+    mutation["uTTCA"] = 0
+    mutation["uTTCC"] = 0
+    mutation["uTTCG"] = 0
+    mutation["uTTCT"] = 0
+    mutation["uATGA"] = 0
+    mutation["uATGC"] = 0
+    mutation["uATGG"] = 0
+    mutation["uATGT"] = 0
+    mutation["uCTGA"] = 0
+    mutation["uCTGC"] = 0
+    mutation["uCTGG"] = 0
+    mutation["uCTGT"] = 0
+    mutation["uGTGA"] = 0
+    mutation["uGTGC"] = 0
+    mutation["uGTGG"] = 0
+    mutation["uGTGT"] = 0
+    mutation["uTTGA"] = 0
+    mutation["uTTGC"] = 0
+    mutation["uTTGG"] = 0
+    mutation["uTTGT"] = 0
+
+    return(mutation)
+
+#Creates an empty mutational spectrum dictionary for RNA datasets, i.e. not combining symmetric mutations
 def getRNADict():
     mutation = OrderedDict()
     mutation["ACAA"] = 0
