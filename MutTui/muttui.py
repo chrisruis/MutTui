@@ -430,6 +430,11 @@ def muttui(args):
             for sbm in sbDict[eachLabel]:
                 outSB.write(sbm[0] + "," + sbm[1:] + "," + str(sbDict[eachLabel][sbm]) + "\n")
             outSB.close()
+        
+            #Plot the strand bias spectrum
+            outSBP = open(args.output_dir + "strand_bias_label_" + eachLabel + ".pdf", "w")
+            plotSB(sbDict[eachLabel], False, outSBP)
+            outSBP.close()
     
     #Write the spectra to a combined catalog if there is more than 1 label
     if len(spectraDict.keys()) > 1:
