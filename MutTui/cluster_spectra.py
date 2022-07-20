@@ -5,15 +5,13 @@
 
 import os
 import argparse
-from math import dist, sqrt, log2
-from matplotlib import mlab
 import numpy as np
 from scipy import spatial
 from sklearn import manifold, decomposition
 import matplotlib
 matplotlib.use('AGG')
 from matplotlib import pyplot as plt
-from .plot_spectrum import convertSpectrumDict, convertSpectrumDictProportions, convertSpectrumProportions
+from .plot_spectrum import convertSpectrumDictProportions
 
 #Converts a set of spectra into a list of dictionaries
 def convertSpectraList(spectra, labels):
