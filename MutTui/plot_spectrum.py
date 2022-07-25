@@ -236,6 +236,28 @@ def plotMutationType(mtCounts, outFile):
     else:
         plt.savefig(outFile.name)
 
+#Plots the number of mutations of each type in an RNA spectrum
+def plotRNAMT(mtCounts, outFile):
+    #Extract the mutations and counts to separate lists
+    mutations = list(mtCounts.keys())
+    mutationCounts = list(mtCounts.values())
+
+    #Colours of the bars
+    colourSet = ["blue", "black", "red", "grey", "green", "pink", "royalblue", "dimgrey", "coral", "silver", "darkgreen", "purple"]
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    #Used to plot proportion of mutations, now changed to plotting number of mutations so not used
+    #ax.bar(mutations, mutationProportions, color = colourSet)
+    ax.bar(mutations, mutationCounts, color = colourSet)
+    plt.xlabel("Mutation type")
+    plt.ylabel("Number of mutations")
+
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
+
 #Plots a double substitution spectrum
 def plotDouble(spectrum, proportion, outFile):
     #Convert the spectrum to proportions if needed
@@ -453,8 +475,10 @@ def plot_spectrum(args):
         else:
             spectrum = convertSpectrumDict(args.spectrum_file)
 
-    if args.types:
+    if args.types and not args.rna:
         plotMutationType(spectrum, args.outFile)
+    elif args.types and args.rna:
+        plotRNAMT(spectrum, args.outFile)
     elif args.double:
         plotDouble(spectrum, args.plot_proportion, args.outFile)
     elif args.sb:
