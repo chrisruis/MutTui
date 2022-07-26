@@ -1038,7 +1038,7 @@ def getDoubleSubstitutionDict():
 def mutationTypeCount(spectrum, rna):
     #Empty dictionary of mutation counts
     if rna:
-        mtDict = {"AC": 0, "AG": 0, "AT": 0, "CA": 0, "CG": 0, "CT": 0, "GA": 0, "GC": 0, "GT": 0, "TA": 0, "TC": 0, "TG": 0}
+        mtDict = {"CA": 0, "CG": 0, "CT": 0, "TA": 0, "TC": 0, "TG": 0, "GT": 0, "GC": 0, "GA": 0, "AC": 0, "AG": 0, "AT": 0}
     else:
         mtDict = {"CA": 0, "CG": 0, "CT": 0, "TA": 0, "TC": 0, "TG": 0}
     
