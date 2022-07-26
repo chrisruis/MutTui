@@ -412,7 +412,10 @@ def muttui(args):
 
         #Plot the mutation type counts
         outMTSpectrum = open(args.output_dir + "mutation_types_label_" + eachLabel + ".pdf", "w")
-        plotMutationType(mtCounts, outMTSpectrum)
+        if not args.rna:
+            plotMutationType(mtCounts, outMTSpectrum)
+        else:
+            plotRNAMT(mtCounts, outMTSpectrum)
         outMTSpectrum.close()
 
         ####No double substitution for RNA currently, will be updated
