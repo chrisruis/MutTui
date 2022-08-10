@@ -1,6 +1,6 @@
 #Functions to check if files and directories are valid
 
-import os, sys
+import os
 
 def is_valid_folder(parser, arg):
     if not os.path.isdir(arg):

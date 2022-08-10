@@ -4,11 +4,7 @@ import os
 import argparse
 from .treetime import run_treetime, change_gaps_to_Ns
 from .isvalid import *
-import subprocess
-import array
 from Bio import AlignIO, Phylo
-from collections import OrderedDict
-import gffutils as gff
 from .add_tree_node_labels import *
 from .branch_labelling import *
 from .reconstruct_spectrum import *

@@ -24,17 +24,25 @@ Column 2 contains the count of the double substitution
 
 Plot of the DBS spectrum in DBS_label_X.csv
 
-#### mutation_types_label_A.csv
+#### mutation_types_label_X.csv
 
-The inferred spectrum of mutation counts without their context. If your tree wasn't labelled, there will be one output file with label A. If your tree was labelled, there will be one output file per label
+The inferred spectrum of mutation counts without their context from branches with label X. If your tree wasn't labelled, there will be one output file with label A. If your tree was labelled, there will be one output file per label
 
 Column 1 contains the mutation type (named with ancestral base followed by mutated base so CA is the number of C>A mutations)
 
 Column 2 contains the count of the mutation type
 
-#### mutation_types_label_A.pdf
+#### mutation_types_label_X.pdf
 
-Plot of the mutation type spectrum in mutation_types_label_A.csv
+Plot of the mutation type spectrum in mutation_types_label_X.csv
+
+#### strand_bias_label_X.csv
+
+Only included if --strand_bias is specified. Contains the inferred SBS spectrum from branches with label X split into transcribed and untranscribed strands
+
+#### strand_bias_label_X.pdf
+
+Plot of the strand-specific spectrum in strand_bias_label_X.csv
 
 #### all_included_mutations.csv
 
