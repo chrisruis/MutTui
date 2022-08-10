@@ -63,6 +63,76 @@ def getTripletDict():
 
     return(tripletDict)
 
+#Creates an empty dictionary of RNA triplets
+def getRNATripletDict():
+    tripletDict = OrderedDict()
+    tripletDict["ACA"] = 0
+    tripletDict["ACC"] = 0
+    tripletDict["ACG"] = 0
+    tripletDict["ACT"] = 0
+    tripletDict["CCA"] = 0
+    tripletDict["CCC"] = 0
+    tripletDict["CCG"] = 0
+    tripletDict["CCT"] = 0
+    tripletDict["GCA"] = 0
+    tripletDict["GCC"] = 0
+    tripletDict["GCG"] = 0
+    tripletDict["GCT"] = 0
+    tripletDict["TCA"] = 0
+    tripletDict["TCC"] = 0
+    tripletDict["TCG"] = 0
+    tripletDict["TCT"] = 0
+    tripletDict["ATA"] = 0
+    tripletDict["ATC"] = 0
+    tripletDict["ATG"] = 0
+    tripletDict["ATT"] = 0
+    tripletDict["CTA"] = 0
+    tripletDict["CTC"] = 0
+    tripletDict["CTG"] = 0
+    tripletDict["CTT"] = 0
+    tripletDict["GTA"] = 0
+    tripletDict["GTC"] = 0
+    tripletDict["GTG"] = 0
+    tripletDict["GTT"] = 0
+    tripletDict["TTA"] = 0
+    tripletDict["TTC"] = 0
+    tripletDict["TTG"] = 0
+    tripletDict["TTT"] = 0
+    tripletDict["AAA"] = 0
+    tripletDict["AAC"] = 0
+    tripletDict["AAG"] = 0
+    tripletDict["AAT"] = 0
+    tripletDict["CAA"] = 0
+    tripletDict["CAC"] = 0
+    tripletDict["CAG"] = 0
+    tripletDict["CAT"] = 0
+    tripletDict["GAA"] = 0
+    tripletDict["GAC"] = 0
+    tripletDict["GAG"] = 0
+    tripletDict["GAT"] = 0
+    tripletDict["TAA"] = 0
+    tripletDict["TAC"] = 0
+    tripletDict["TAG"] = 0
+    tripletDict["TAT"] = 0
+    tripletDict["AGA"] = 0
+    tripletDict["AGC"] = 0
+    tripletDict["AGG"] = 0
+    tripletDict["AGT"] = 0
+    tripletDict["CGA"] = 0
+    tripletDict["CGC"] = 0
+    tripletDict["CGG"] = 0
+    tripletDict["CGT"] = 0
+    tripletDict["GGA"] = 0
+    tripletDict["GGC"] = 0
+    tripletDict["GGG"] = 0
+    tripletDict["GGT"] = 0
+    tripletDict["TGA"] = 0
+    tripletDict["TGC"] = 0
+    tripletDict["TGG"] = 0
+    tripletDict["TGT"] = 0
+
+    return(tripletDict)
+
 #Creates an empty dictionary of dinucleotides
 def getDinucleotideDict():
     dnDict = OrderedDict()
@@ -81,7 +151,10 @@ def getDinucleotideDict():
 
 #Calculates the number of each triplet in a given sequence
 def calculateContexts(sequence, rna):
-    tripletDict = getTripletDict()
+    if not rna:
+        tripletDict = getTripletDict()
+    else:
+        tripletDict = getRNATripletDict()
 
     nucleotides = ["A", "C", "G", "T"]
 
@@ -158,7 +231,7 @@ def rescaleMT(spectrum, reference, scalar, rna):
     
     #Empty mutation type dicts
     if rna:
-        rescaledSpectrum = {"AC": 0, "AG": 0, "AT": 0, "CA": 0, "CG": 0, "CT": 0, "GA": 0, "GC": 0, "GT": 0, "TA": 0, "TC": 0, "TG": 0}
+        rescaledSpectrum = {"CA": 0, "CG": 0, "CT": 0, "TA": 0, "TC": 0, "TG": 0, "GT": 0, "GC": 0, "GA": 0, "AC": 0, "AG": 0, "AT": 0}
     else:
         rescaledSpectrum = {"CA": 0, "CG": 0, "CT": 0, "TA": 0, "TC": 0, "TG": 0}
     
@@ -221,7 +294,7 @@ if __name__ == "__main__":
                         default = False)
     parser.add_argument("--rna",
                         dest = "rna",
-                        help = "Specify if using an RNA pathogen, if specified the contexts will not include reverse complements",
+                        help = "Specify if using an RNA pathogen",
                         action = "store_true",
                         default = False)
     parser.add_argument("-o",
@@ -241,19 +314,19 @@ if __name__ == "__main__":
     outFile = open(args.outFile, "w")
     outFile.write("Substitution,Number_of_mutations\n")
 
+    #Rescale DNA or RNA mutation type spectrum
     if args.mt:
-        #Rescale the mutation type spectrum
         rescaledSpectrum = rescaleMT(spectrum, args.reference, scalar, args.rna)
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation + "," + str(rescaledSpectrum[eachMutation]) + "\n")
+    #Rescale DNA double substitution spectrum
     elif args.double:
         rescaledSpectrum = rescaleDouble(spectrum, args.reference, scalar, args.rna)
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
+    #Rescale DNA SBS spectrum
     else:
-        #Rescale the SBS spectrum
         rescaledSpectrum = rescaleSBS(spectrum, args.reference, scalar, args.rna)
-        #Write the rescaled spectrum
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
 
