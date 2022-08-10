@@ -5,6 +5,12 @@
 MutTui can be installed through pip using:
 
 ```
+pip3 install git+https://github.com/chrisruis/MutTui
+```
+
+Or using:
+
+```
 pip install MutTui
 ```
 
