@@ -357,6 +357,49 @@ def plotSpectrumComparison(spectrum, outFile):
     else:
         plt.savefig(outFile.name)
 
+#Plots a comparison between 2 RNA SBS spectra
+def plotRNASpectrumComparison(spectrum, outFile):
+    #The 192 RNA mutations as a list, used so they are always in the same order
+    mutations = ["A[C>A]A","A[C>A]C","A[C>A]G","A[C>A]T","C[C>A]A","C[C>A]C","C[C>A]G","C[C>A]T","G[C>A]A","G[C>A]C","G[C>A]G","G[C>A]T","T[C>A]A","T[C>A]C","T[C>A]G","T[C>A]T","A[C>G]A","A[C>G]C","A[C>G]G","A[C>G]T","C[C>G]A","C[C>G]C","C[C>G]G","C[C>G]T","G[C>G]A","G[C>G]C","G[C>G]G","G[C>G]T","T[C>G]A","T[C>G]C","T[C>G]G","T[C>G]T","A[C>T]A","A[C>T]C","A[C>T]G","A[C>T]T","C[C>T]A","C[C>T]C","C[C>T]G","C[C>T]T","G[C>T]A","G[C>T]C","G[C>T]G","G[C>T]T","T[C>T]A","T[C>T]C","T[C>T]G","T[C>T]T","A[T>A]A","A[T>A]C","A[T>A]G","A[T>A]T","C[T>A]A","C[T>A]C","C[T>A]G","C[T>A]T","G[T>A]A","G[T>A]C","G[T>A]G","G[T>A]T","T[T>A]A","T[T>A]C","T[T>A]G","T[T>A]T","A[T>C]A","A[T>C]C","A[T>C]G","A[T>C]T","C[T>C]A","C[T>C]C","C[T>C]G","C[T>C]T","G[T>C]A","G[T>C]C","G[T>C]G","G[T>C]T","T[T>C]A","T[T>C]C","T[T>C]G","T[T>C]T","A[T>G]A","A[T>G]C","A[T>G]G","A[T>G]T","C[T>G]A","C[T>G]C","C[T>G]G","C[T>G]T","G[T>G]A","G[T>G]C","G[T>G]G","G[T>G]T","T[T>G]A","T[T>G]C","T[T>G]G","T[T>G]T","A[G>T]A","A[G>T]C","A[G>T]G","A[G>T]T","C[G>T]A","C[G>T]C","C[G>T]G","C[G>T]T","G[G>T]A","G[G>T]C","G[G>T]G","G[G>T]T","T[G>T]A","T[G>T]C","T[G>T]G","T[G>T]T","A[G>C]A","A[G>C]C","A[G>C]G","A[G>C]T","C[G>C]A","C[G>C]C","C[G>C]G","C[G>C]T","G[G>C]A","G[G>C]C","G[G>C]G","G[G>C]T","T[G>C]A","T[G>C]C","T[G>C]G","T[G>C]T","A[G>A]A","A[G>A]C","A[G>A]G","A[G>A]T","C[G>A]A","C[G>A]C","C[G>A]G","C[G>A]T","G[G>A]A","G[G>A]C","G[G>A]G","G[G>A]T","T[G>A]A","T[G>A]C","T[G>A]G","T[G>A]T","A[A>T]A","A[A>T]C","A[A>T]G","A[A>T]T","C[A>T]A","C[A>T]C","C[A>T]G","C[A>T]T","G[A>T]A","G[A>T]C","G[A>T]G","G[A>T]T","T[A>T]A","T[A>T]C","T[A>T]G","T[A>T]T","A[A>G]A","A[A>G]C","A[A>G]G","A[A>G]T","C[A>G]A","C[A>G]C","C[A>G]G","C[A>G]T","G[A>G]A","G[A>G]C","G[A>G]G","G[A>G]T","T[A>G]A","T[A>G]C","T[A>G]G","T[A>G]T","A[A>C]A","A[A>C]C","A[A>C]G","A[A>C]T","C[A>C]A","C[A>C]C","C[A>C]G","C[A>C]T","G[A>C]A","G[A>C]C","G[A>C]G","G[A>C]T","T[A>C]A","T[A>C]C","T[A>C]G","T[A>C]T"]
+
+    #Will be filled with the mutation counts
+    mutationCounts = []
+
+    #Iterate through the mutations and add their count to mutationCounts
+    for mutation in mutations:
+        mutationCounts.append(spectrum[mutation])
+    
+    #Colours of the bars
+    colourSet = ["blue", "black", "red", "grey", "green", "pink", "royalblue", "dimgrey", "coral", "silver", "darkgreen", "purple"]
+    colours = [i for i in colourSet for j in range(16)]
+
+    #Used to plot the rectangles above the plot containing the mutation type
+    rect_lower = float(np.max(mutationCounts)) + float(np.max(mutationCounts) * 0.05)
+    rect_width = float(np.max(mutationCounts)) * 0.4
+
+    #Coordinates of the mutation type rectangles and text
+    mutation_types = ["C>A", "C>G", "C>T", "T>A", "T>C", "T>G", "G>T", "G>C", "G>A", "A>T", "A>G", "A>C"]
+    rect_coords = [-0.5, 15.5, 31.5, 47.5, 63.5, 79.5, 95.5, 111.5, 127.5, 143.5, 159.5, 175.5]
+    text_coords = [1, 17, 33, 49, 65, 81, 97, 113, 129, 145, 161, 177]
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.bar(mutations, mutationCounts, color = colours)
+
+    for i, rect in enumerate(rect_coords):
+        ax.add_patch(plt.Rectangle((rect, rect_lower), 16, rect_width, facecolor = colourSet[i]))
+        ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], color = "white", fontweight = "bold")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.set_xticklabels([""] * len(mutations))
+    plt.xlabel("Mutation")
+    plt.ylabel("Difference in mutation proportion")
+    plt.margins(0)
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
+
 #Plots a comparison of the proportions of each mutation in 2 spectra
 #x-axis is the proportion of the mutation in sample 1, y-axis is the proportion of the mutation in sample 2
 #Takes 2 spectra to be compared and the output PDF to save to

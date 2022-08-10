@@ -51,6 +51,11 @@ def compare_spectra_parser(parser):
                         "e.g. if comparing SigProfilerExtractor signatures",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--rna",
+                        dest = "rna",
+                        help = "Specify if using an RNA pathogen",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "--out",
                         dest = "out_prefix",
@@ -89,9 +94,11 @@ def compare_spectra(args):
 
     outFile.close()
 
-    plotSpectrumComparison(spectrumDifference, args.out_prefix + "_spectrum_comparison.pdf")
-
-    plotSpectrumPointComparison(spectrum1Proportions, spectrum2Proportions, args.out_prefix + "_proportion_comparison.pdf")
+    if not args.rna:
+        plotSpectrumComparison(spectrumDifference, args.out_prefix + "_spectrum_comparison.pdf")
+        plotSpectrumPointComparison(spectrum1Proportions, spectrum2Proportions, args.out_prefix + "_proportion_comparison.pdf")
+    else:
+        plotRNASpectrumComparison(spectrumDifference, args.out_prefix + "_spectrum_comparison.pdf")
 
     return
 
