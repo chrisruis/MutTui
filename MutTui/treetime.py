@@ -6,14 +6,7 @@ from Bio import AlignIO
 
 #Runs treetime ancestral reconstruction
 def run_treetime(alignment, tree, output_dir, add_treetime_cmds):
-    ####This is the command for normal treetime
-    ####Revert to this once the branch_mutations.txt file is added to treetime
     cmd = "treetime ancestral "
-
-    ####Used to run a specific version of treetime until branch_mutations.txt
-    ####is added into treetime
-    ####Remove this once the file is incorporated
-    #cmd = "python3 /Users/chris/Documents/abscessus/manchester.samples/muttui/treetime_fork/treetime/bin/treetime ancestral "
 
     #Check if a model has been specified, if not use --gtr infer
     if add_treetime_cmds == None:
@@ -51,8 +44,6 @@ def run_treetime_mugration(tree, labels, output_dir):
     subprocess.run(cmd, shell = True, check = True)
 
 #treetime reconstructs mutations at gap sites, which are later removed by MutTui
-#This can be a problem if there are large numbers of gap sites as the resulting annotated nexus tree
-#takes a very long time to read into python
 #Ns are not reconstructed by treetime. This function replaces gaps with Ns in the alignment
 #so they will not be reconstructed. As gaps and Ns are both treated as missing data
 #in phylogenetic methods, this will not alter any inferences but will remove large numbers
