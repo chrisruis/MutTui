@@ -116,10 +116,10 @@ def muttui_parser(parser):
                         "spectrum of the downstream label",
                         action = "store_true",
                         default = False)
-    parser.add_argument("--exclude_root_branches",
-                        dest = "exclude_root_branches",
-                        help = "Use when excluding the two branches that branch directly from the root node. These branches will " +
-                        "not be included in any spectrum",
+    parser.add_argument("--include_root_branches",
+                        dest = "include_root_branches",
+                        help = "Use to include mutations on the two branches that branch directly from the root node. These branches are excluded " +
+                        "by default as the direction of mutations is typically uncertain",
                         action = "store_true",
                         default = False)
     parser.add_argument("-rs",
@@ -312,9 +312,9 @@ def muttui(args):
                 else:
                     branchCategory = None
             
-            #If using --exclude_root_branches, check if the branch comes off the root, if so set the branchCategory
+            #If --include_root_branches is not specified, check if the branch comes off the root, if so set the branchCategory
             #to None so it won't be analysed
-            if args.exclude_root_branches:
+            if not args.include_root_branches:
                 if len(labelledTree.get_path(clade)) == 1:
                     branchCategory = None
 
