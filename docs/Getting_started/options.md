@@ -69,9 +69,9 @@ By default, when using a labelled tree, the branches on which the label changes 
 
 Use this if specifying labels that only change on tip branches
 
-#### --exclude_root_branches
+#### --include_root_branches
 
-Use this if the tree has long branches immediately off the root. The direction of mutations along these branches may not be inferred reliably. If these branches are long relative to the tree, a high proportion of the mutations may be on these branches and therefore the obtained spectrum may be unreliable
+Mutations on the two branches immediately downstream of the root are excluded by default as their direction may not be inferred reliably. Use this option to include mutations on these branches
 
 #### --start_from_treetime
 
