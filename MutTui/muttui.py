@@ -10,6 +10,7 @@ from .branch_labelling import *
 from .reconstruct_spectrum import *
 from .plot_spectrum import *
 from .gff_conversion import *
+from .rescale_spectrum import getTripletDict, getRNATripletDict, calculateContexts
 
 from .__init__ import __version__
 
@@ -380,6 +381,9 @@ def muttui(args):
                 for eM in branchMutations:
                     outMutationsNotUsed.write(eM[0] + str(eM[1]) + eM[3] + "," + eM[0] + str(eM[2]) + eM[3] + "," + clade.name + ",Label_changes_on_branch\n")
     
+    #Calculate contexts in the reference to enable rescaling
+    refContexts = calculateContexts(referenceSequence, args.rna)
+    
     #Write the spectra to separate files
     for eachLabel in spectraDict:
         outFile = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".csv", "w")
@@ -396,6 +400,23 @@ def muttui(args):
         else:
             plotRNA(spectrumFormat, False, outSpectrum)
         outSpectrum.close()
+
+        #Rescale the spectrum
+        rescaledSpectrum = rescaleSBS(spectraDict[eachLabel], refContexts, 1000000, args.rna)
+        outRescaled = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + "_rescaled.csv", "w")
+        outRescaled.write("Substitution,Number_of_mutations\n")
+        for eachMutation in rescaledSpectrum:
+            outRescaled.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
+        outRescaled.close()
+
+        #Plot the rescaled spectrum
+        outRSpectrum = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + "_rescaled.pdf", "w")
+        spectrumFormat = convertSpectrumFormat(rescaledSpectrum)
+        if not args.rna:
+            plotSpectrumFromDict(spectrumFormat, outRSpectrum)
+        else:
+            plotRNA(spectrumFormat, False, outRSpectrum)
+        outRSpectrum.close()
 
         #Calculate the number of each type of mutation
         mtCounts = mutationTypeCount(spectraDict[eachLabel], args.rna)

@@ -1048,6 +1048,21 @@ def mutationTypeCount(spectrum, rna):
     
     return(mtDict)
 
+#Rescales a SBS spectrum by the triplet availability in a provided reference genome
+#Uses code from rescale_spectrum.py but differs as this function doesn't update spectrum keys
+def rescaleSBS(spectrum, contexts, scalar, rna):
+    #Will be filled with the rescaled spectrum
+    if rna:
+        rescaledSpectrum = getRNADict()
+    else:
+        rescaledSpectrum = getMutationDict()
+    
+    #Iterate through the contextual mutations, scale their counts and add to rescaledSpectrum
+    for m in spectrum:
+        rescaledSpectrum[m] = round((spectrum[m]/contexts[m[0] + m[1] + m[3]]) * scalar)
+
+    return(rescaledSpectrum)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", help = "ancestral_sequences.fasta from treetime")
