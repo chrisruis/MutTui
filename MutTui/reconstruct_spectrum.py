@@ -1048,6 +1048,138 @@ def mutationTypeCount(spectrum, rna):
     
     return(mtDict)
 
+#Creates an empty dictionary of triplets
+def getTripletDict():
+    tripletDict = OrderedDict()
+    tripletDict["ACA"] = 0
+    tripletDict["ACC"] = 0
+    tripletDict["ACG"] = 0
+    tripletDict["ACT"] = 0
+    tripletDict["CCA"] = 0
+    tripletDict["CCC"] = 0
+    tripletDict["CCG"] = 0
+    tripletDict["CCT"] = 0
+    tripletDict["GCA"] = 0
+    tripletDict["GCC"] = 0
+    tripletDict["GCG"] = 0
+    tripletDict["GCT"] = 0
+    tripletDict["TCA"] = 0
+    tripletDict["TCC"] = 0
+    tripletDict["TCG"] = 0
+    tripletDict["TCT"] = 0
+    tripletDict["ATA"] = 0
+    tripletDict["ATC"] = 0
+    tripletDict["ATG"] = 0
+    tripletDict["ATT"] = 0
+    tripletDict["CTA"] = 0
+    tripletDict["CTC"] = 0
+    tripletDict["CTG"] = 0
+    tripletDict["CTT"] = 0
+    tripletDict["GTA"] = 0
+    tripletDict["GTC"] = 0
+    tripletDict["GTG"] = 0
+    tripletDict["GTT"] = 0
+    tripletDict["TTA"] = 0
+    tripletDict["TTC"] = 0
+    tripletDict["TTG"] = 0
+    tripletDict["TTT"] = 0
+
+    return(tripletDict)
+
+#Creates an empty dictionary of RNA triplets
+def getRNATripletDict():
+    tripletDict = OrderedDict()
+    tripletDict["ACA"] = 0
+    tripletDict["ACC"] = 0
+    tripletDict["ACG"] = 0
+    tripletDict["ACT"] = 0
+    tripletDict["CCA"] = 0
+    tripletDict["CCC"] = 0
+    tripletDict["CCG"] = 0
+    tripletDict["CCT"] = 0
+    tripletDict["GCA"] = 0
+    tripletDict["GCC"] = 0
+    tripletDict["GCG"] = 0
+    tripletDict["GCT"] = 0
+    tripletDict["TCA"] = 0
+    tripletDict["TCC"] = 0
+    tripletDict["TCG"] = 0
+    tripletDict["TCT"] = 0
+    tripletDict["ATA"] = 0
+    tripletDict["ATC"] = 0
+    tripletDict["ATG"] = 0
+    tripletDict["ATT"] = 0
+    tripletDict["CTA"] = 0
+    tripletDict["CTC"] = 0
+    tripletDict["CTG"] = 0
+    tripletDict["CTT"] = 0
+    tripletDict["GTA"] = 0
+    tripletDict["GTC"] = 0
+    tripletDict["GTG"] = 0
+    tripletDict["GTT"] = 0
+    tripletDict["TTA"] = 0
+    tripletDict["TTC"] = 0
+    tripletDict["TTG"] = 0
+    tripletDict["TTT"] = 0
+    tripletDict["AAA"] = 0
+    tripletDict["AAC"] = 0
+    tripletDict["AAG"] = 0
+    tripletDict["AAT"] = 0
+    tripletDict["CAA"] = 0
+    tripletDict["CAC"] = 0
+    tripletDict["CAG"] = 0
+    tripletDict["CAT"] = 0
+    tripletDict["GAA"] = 0
+    tripletDict["GAC"] = 0
+    tripletDict["GAG"] = 0
+    tripletDict["GAT"] = 0
+    tripletDict["TAA"] = 0
+    tripletDict["TAC"] = 0
+    tripletDict["TAG"] = 0
+    tripletDict["TAT"] = 0
+    tripletDict["AGA"] = 0
+    tripletDict["AGC"] = 0
+    tripletDict["AGG"] = 0
+    tripletDict["AGT"] = 0
+    tripletDict["CGA"] = 0
+    tripletDict["CGC"] = 0
+    tripletDict["CGG"] = 0
+    tripletDict["CGT"] = 0
+    tripletDict["GGA"] = 0
+    tripletDict["GGC"] = 0
+    tripletDict["GGG"] = 0
+    tripletDict["GGT"] = 0
+    tripletDict["TGA"] = 0
+    tripletDict["TGC"] = 0
+    tripletDict["TGG"] = 0
+    tripletDict["TGT"] = 0
+
+    return(tripletDict)
+
+#Calculates the number of each triplet in a given sequence
+def calculateContexts(sequence, rna):
+    if not rna:
+        tripletDict = getTripletDict()
+    else:
+        tripletDict = getRNATripletDict()
+
+    nucleotides = ["A", "C", "G", "T"]
+
+    for i in range(len(sequence) - 2):
+        t = sequence[i:(i+3)]
+        if (t[0] in nucleotides) and (t[1] in nucleotides) and (t[2] in nucleotides):
+            if t in tripletDict:
+                tripletDict[t] += 1
+            else:
+                tripletDict[complement(t[2]) + complement(t[1]) + complement(t[0])] += 1
+    
+    #Add the reverse complement contexts from the reverse strand if the sequence is DNA
+    if not rna:
+        for c in tripletDict:
+            tripletDict[c] = tripletDict[c] * 2
+    
+    return(tripletDict)
+
 #Rescales a SBS spectrum by the triplet availability in a provided reference genome
 #Uses code from rescale_spectrum.py but differs as this function doesn't update spectrum keys
 def rescaleSBS(spectrum, contexts, scalar, rna):

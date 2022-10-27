@@ -10,7 +10,6 @@ from .branch_labelling import *
 from .reconstruct_spectrum import *
 from .plot_spectrum import *
 from .gff_conversion import *
-from .rescale_spectrum import getTripletDict, getRNATripletDict, calculateContexts
 
 from .__init__ import __version__
 
