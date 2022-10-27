@@ -119,11 +119,14 @@ def getDistanceMatrix(spectraList):
     return(distances)
 
 #Converts a list of spectrum dictionaries to an array
-def arraySpectra(spectra):
+def arraySpectra(spectra, rna):
     #Extract mutations from keys
     m = spectra[0].keys()
 
-    sa = np.zeros((len(spectra), 96))
+    if not rna:
+        sa = np.zeros((len(spectra), 96))
+    else:
+        sa = np.zeros((len(spectra), 192))
     
     for i, s in enumerate(spectra):
         for j, em in enumerate(m):
@@ -310,7 +313,7 @@ def cluster_spectra(args):
     colourDict, cConversion = getColourDict(args.colour_file)
 
     #Extract spectra to arrays
-    sA = arraySpectra(spectraList)
+    sA = arraySpectra(spectraList, args.rna)
 
     #MDS of mutation proportions
     sbsPCA(sA, sampleNames, colourDict, args.colour_labels, args.output_dir)
@@ -372,6 +375,11 @@ def cluster_spectra_parser(parser):
     parser.add_argument("--colour_labels",
                         dest = "colour_labels",
                         help = "Specify that the sample labels in the file provided with -cl are colours",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("--rna",
+                        dest = "rna",
+                        help = "Specify if using an RNA pathogen",
                         action = "store_true",
                         default = False)
     parser.add_argument("-o",
