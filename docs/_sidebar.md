@@ -22,5 +22,6 @@
 
     - [Generating summaries](/Post_processing/branch_summaries.md)
     - [Splitting spectra into subgroups](/Post_processing/splitting_spectra.md)
+    - [Filtering mutations](/Post_processing/filtering_mutations.md)
 
 - [MutTui algorithm](/Algorithm/algorithm.md)
