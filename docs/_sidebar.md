@@ -20,7 +20,7 @@
 
 - Post-processing
 
-    - [Generating branch summaries](/Post_processing/branch_summaries.md)
+    - [Generating summaries](/Post_processing/branch_summaries.md)
     - [Splitting spectra into subgroups](/Post_processing/splitting_spectra.md)
 
 - [MutTui algorithm](/Algorithm/algorithm.md)
