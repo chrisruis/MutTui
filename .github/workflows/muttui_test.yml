@@ -35,7 +35,7 @@ jobs:
         python --version
         pip install -U pip
         pip install -U pytest
-        wget https://github.com/gtonkinhill/muttui_test_data/archive/refs/tags/v0.0.2.zip -O muttui_test_data.zip
+        wget https://github.com/gtonkinhill/muttui_test_data/archive/refs/tags/v0.0.3.zip -O muttui_test_data.zip
         unzip muttui_test_data.zip
         
     - name: Install
