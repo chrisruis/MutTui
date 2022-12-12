@@ -14,8 +14,8 @@ import argparse
 import pandas as pd
 from Bio import SeqIO
 import sys
-from .reconstruct_spectrum import getMutationDict, getContext, complement
-from .plot_spectrum import convertSpectrumFormat, plotSpectrumFromDict
+from .reconstruct_spectrum import getMutationDict, getContext, complement, getRNADict
+from .plot_spectrum import convertSpectrumFormat, plotSpectrumFromDict, plotRNA
 
 #Extracts variants from a VCF file, returns a list of lists with
 #each list containing chromosome, position, reference, variant
@@ -126,6 +126,11 @@ def korimuto_parser(parser):
                         "must match those in the FASTA reference file exactly",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--rna",
+                        dest = "rna",
+                        help = "Specify if using an RNA pathogen, will calculate an RNA mutational spectrum",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-o",
                         "-output_prefix",
                         dest = "out",
@@ -159,7 +164,10 @@ def korimuto(args):
     outAllMutations.write("Mutation_in_genome,Substitution\n")
     
     #Empty spectrum
-    spectrum = getMutationDict()
+    if args.rna:
+        spectrum = getRNADict()
+    else:
+        spectrum = getMutationDict()
 
     #Nucleotides, used to check if mutation involves 2 nucleotides
     nucleotides = ["A","C","G","T"]
@@ -200,7 +208,10 @@ def korimuto(args):
     #Plot the spectrum
     outSpectrum = open(args.out + "_mutational_spectrum.pdf", "w")
     spectrumFormat = convertSpectrumFormat(spectrum)
-    plotSpectrumFromDict(spectrumFormat, outSpectrum)
+    if args.rna:
+        plotRNA(spectrumFormat, False, outSpectrum)
+    else:
+        plotSpectrumFromDict(spectrumFormat, outSpectrum)
     outSpectrum.close()
 
     return
