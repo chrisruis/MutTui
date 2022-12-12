@@ -25,7 +25,7 @@ MutTui convert-vcf -v positions.vcf -o conversion.txt
 
 ## Labelling your tree
 
-More details in [Labelling_your_tree](https://github.com/chrisruis/MutTui/tree/main/docs/Labelling_your_tree)
+More details in [Labelling_your_tree](https://github.com/chrisruis/MutTui/tree/main/docs/Labelling_the_tree)
 
 By default, MutTui will assign all branches in the given tree to the same mutational spectrum. If you want to split your tree into multiple groups, first label the tree using:
 
