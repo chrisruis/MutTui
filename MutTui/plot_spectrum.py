@@ -313,6 +313,59 @@ def plotDouble(spectrum, proportion, outFile):
     else:
         plt.savefig(outFile.name)
 
+#Plots a RNA double substitution spectrum
+def plotRNADouble(spectrum, proportion, outFile):
+    #Convert the spectrum to proportions if needed
+    if proportion:
+        spectrum = convertSpectrumProportions(spectrum)
+    #Extracts the mutations and counts to separate lists
+    mutations = list(spectrum.keys())
+    mutationCounts = list(spectrum.values())
+
+    #Extract x-axis labels which are the bases mutated to
+    labels = list()
+    for m in spectrum:
+        labels.append(m.split(">")[1])
+
+    #Colours of the bars
+    colours = ["red", "red", "red", "red", "red", "red", "red", "red", "red", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "limegreen", "gold", "gold", "gold", "gold", "gold", "gold", "gold", "gold", "gold", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "dodgerblue", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "orange", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "mediumpurple", "cyan", "cyan", "cyan", "cyan", "cyan", "cyan", "cyan", "cyan", "cyan", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "magenta", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "yellowgreen", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darksalmon", "darkred", "darkred", "darkred", "darkred", "darkred", "darkred", "darkred", "darkred", "darkred", "darkgreen", "darkgreen", "darkgreen", "darkgreen", "darkgreen", "darkgreen", "darkgreen", "darkgreen", "darkgreen", "olive", "olive", "olive", "olive", "olive", "olive", "olive", "olive", "olive", "blue", "blue", "blue", "blue", "blue", "blue", "blue", "blue", "blue", "goldenrod", "goldenrod", "goldenrod", "goldenrod", "goldenrod", "goldenrod", "goldenrod", "goldenrod", "goldenrod", "violet", "violet", "violet", "violet", "violet", "violet", "violet", "violet", "violet", "darkturquoise", "darkturquoise", "darkturquoise", "darkturquoise", "darkturquoise", "darkturquoise", "darkturquoise", "darkturquoise", "darkturquoise", "crimson", "crimson", "crimson", "crimson", "crimson", "crimson", "crimson", "crimson", "crimson", "forestgreen", "forestgreen", "forestgreen", "forestgreen", "forestgreen", "forestgreen", "forestgreen", "forestgreen", "forestgreen", "salmon", "salmon", "salmon", "salmon", "salmon", "salmon", "salmon", "salmon", "salmon"]
+    colourSet = ["red", "limegreen", "gold", "dodgerblue", "orange", "mediumpurple", "cyan", "magenta", "yellowgreen", "darksalmon", "darkred", "darkgreen", "olive", "blue", "goldenrod", "violet", "darkturquoise", "crimson", "forestgreen", "salmon"]
+
+    #Used to plot the rectangles above the plot containing the mutation type
+    rect_lower = float(np.max(mutationCounts)) + float(np.max(mutationCounts) * 0.05)
+    rect_width = float(np.max(mutationCounts)) * 0.1
+    
+    #The coordinates of the mutation type rectangles and text
+    mutation_types = ["AA", "AC", "AG", "AT", "CA", "CC", "CG", "CT", "GA", "GC", "GG", "GT", "TA", "TC", "TG", "TT"]
+    rect_coords = [-0.5, 8.5, 17.5, 26.5, 35.5, 44.5, 53.5, 62.5, 71.5, 80.5, 89.5, 98.5, 107.5, 116.5, 125.5, 134.5]
+    rect_length = [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+    text_coords = [2, 11, 20, 29, 38, 47, 56, 65, 74, 83, 92, 101, 110, 119, 128, 137]
+
+    fig = plt.figure()
+    ax = plt.subplot(111)
+    ax.bar(mutations, mutationCounts, color = colours)
+    for i, rect in enumerate(rect_coords):
+        if proportion:
+            ax.add_patch(plt.Rectangle((rect, 1), rect_length[i], 0.1, facecolor = colourSet[i]))
+            ax.text(text_coords[i], 1.035, mutation_types[i], size = 7)
+        else:
+            ax.add_patch(plt.Rectangle((rect, rect_lower), rect_length[i], rect_width, facecolor = colourSet[i]))
+            ax.text(text_coords[i], (rect_lower + (rect_width/3)), mutation_types[i], size = 7)
+    if proportion:
+        plt.ylim([0, 1.1])
+        plt.ylabel("Proportion of mutations")
+    else:
+        plt.ylabel("Number of mutations")
+    plt.xlabel("Mutation")
+    plt.tick_params(axis = "x", which = "major", labelsize = 4)
+    plt.xticks(ticks = mutations, rotation = 90, labels = labels)
+    plt.margins(0)
+
+    if type(outFile) == str:
+        plt.savefig(outFile)
+    else:
+        plt.savefig(outFile.name)
+
 #Plots a comparison between 2 spectra from a dictionary with mutations as keys and difference in mutation proportions as values
 def plotSpectrumComparison(spectrum, outFile):
     #The 96 DNA mutations as a list, used so they are always in the same order
@@ -526,8 +579,10 @@ def plot_spectrum(args):
         plotMutationType(spectrum, args.outFile)
     elif args.types and args.rna:
         plotRNAMT(spectrum, args.outFile)
-    elif args.double:
+    elif args.double and not args.rna:
         plotDouble(spectrum, args.plot_proportion, args.outFile)
+    elif args.double and args.rna:
+        plotRNADouble(spectrum, args.plot_proportion, args.outFile)
     elif args.sb:
         plotSB(spectrum, args.plot_proportion, args.outFile)
     elif args.rna:
