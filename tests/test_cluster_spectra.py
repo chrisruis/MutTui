@@ -1,5 +1,5 @@
 # test cluster_spectra
-from MutTui.cluster_spectra import main
+#from MutTui.cluster_spectra import main
 import sys, os
 import tempfile
 
