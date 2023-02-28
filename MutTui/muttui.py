@@ -395,7 +395,7 @@ def muttui(args):
         outSpectrum = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".pdf", "w")
         spectrumFormat = convertSpectrumFormat(spectraDict[eachLabel])
         if not args.rna:
-            plotSpectrumFromDict(spectrumFormat, outSpectrum)
+            plotSpectrumFromDict(spectrumFormat, False, outSpectrum)
         else:
             plotRNA(spectrumFormat, False, outSpectrum)
         outSpectrum.close()
@@ -412,7 +412,7 @@ def muttui(args):
         outRSpectrum = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + "_rescaled.pdf", "w")
         spectrumFormat = convertSpectrumFormat(rescaledSpectrum)
         if not args.rna:
-            plotSpectrumFromDict(spectrumFormat, outRSpectrum)
+            plotSpectrumFromDict(spectrumFormat, False, outRSpectrum)
         else:
             plotRNA(spectrumFormat, False, outRSpectrum)
         outRSpectrum.close()

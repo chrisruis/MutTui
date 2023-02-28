@@ -211,7 +211,7 @@ def korimuto(args):
     if args.rna:
         plotRNA(spectrumFormat, False, outSpectrum)
     else:
-        plotSpectrumFromDict(spectrumFormat, outSpectrum)
+        plotSpectrumFromDict(spectrumFormat, False, outSpectrum)
     outSpectrum.close()
 
     return

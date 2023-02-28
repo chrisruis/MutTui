@@ -55,7 +55,7 @@ def postProcessMutations(mutationsFile, labelsFile, rna, outdir):
         outSpectrum = open(outdir + "mutational_spectrum_label_" + eachLabel + ".pdf", "w")
         spectrumFormat = convertSpectrumFormat(spectraDict[eachLabel])
         if not rna:
-            plotSpectrumFromDict(spectrumFormat, outSpectrum)
+            plotSpectrumFromDict(spectrumFormat, False, outSpectrum)
         else:
             plotRNA(spectrumFormat, False, outSpectrum)
         outSpectrum.close()
@@ -123,7 +123,7 @@ def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, outdir):
     outSpectrum = open(outdir + "mutational_spectrum_filtered.pdf", "w")
     spectrumFormat = convertSpectrumFormat(spectrum)
     if not rna:
-        plotSpectrumFromDict(spectrumFormat, outSpectrum)
+        plotSpectrumFromDict(spectrumFormat, False, outSpectrum)
     else:
         plotRNA(spectrumFormat, False, outSpectrum)
     outSpectrum.close()
