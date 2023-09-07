@@ -68,7 +68,7 @@ def postProcessMutations(mutationsFile, labelsFile, rna, outdir):
         outMutation.close()
 
 #Filters mutations with fewer than a given number of occurrences and within a given region of the genome
-def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, outdir):
+def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, write_counts, outdir):
     #Set max and min genome and alignment positions
     if not genome_pos:
         g_pos = [1, 100000000]
@@ -96,6 +96,14 @@ def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, outdir):
                 if l.strip().split(",")[0] not in mutations:
                     mutations[l.strip().split(",")[0]] = 0
                 mutations[l.strip().split(",")[0]] += 1
+    
+    #Write mutation counts if specified
+    if write_counts:
+        outMutationCounts = open(outdir + "mutation_counts.csv", "w")
+        outMutationCounts.write("Substitution,Mutation_type,Number_of_mutations\n")
+        for eM in mutations:
+            outMutationCounts.write(eM + "," + eM[0] + ">" + eM[-1] + "," + str(mutations[eM]) + "\n")
+        outMutationCounts.close()
     
     #Empty spectrum
     if rna:
@@ -155,6 +163,11 @@ if __name__ == "__main__":
                         "to specify the maximum number of occurrences to keep a mutation",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--write_counts",
+                        dest = "write_counts",
+                        help = "Specify to write the number of occurrences of each mutation. Requires --filter to also be specified",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("-n",
                         "--number_mutations",
                         dest = "number_mutations",
@@ -190,4 +203,4 @@ if __name__ == "__main__":
         postProcessMutations(args.mutations, args.labels, args.rna, args.output_dir)
     #Filter the mutations
     else:
-        filterMutations(args.mutations, args.number_mutations, args.genome_positions, args.align_positions, args.rna, args.output_dir)
+        filterMutations(args.mutations, args.number_mutations, args.genome_positions, args.align_positions, args.rna, args.write_counts, args.output_dir)
