@@ -234,7 +234,7 @@ if __name__ == "__main__":
                         default = False)
     parser.add_argument("--count_mutations",
                         dest = "count_mutations",
-                        help = "Specify to write the number of occurrences of each mutation. Requires --filter to also be specified",
+                        help = "Specify to write the number of occurrences of each mutation",
                         action = "store_true",
                         default = False)
     parser.add_argument("-n",
