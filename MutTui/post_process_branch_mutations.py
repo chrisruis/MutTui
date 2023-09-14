@@ -5,9 +5,12 @@
 import argparse
 import pandas as pd
 import os
+from Bio import SeqIO, Phylo
+import array
 from isvalid import *
 from reconstruct_spectrum import *
 from plot_spectrum import *
+from branch_labelling import labelBranchesTreetime
 
 #Extracts the labels to a dictionary
 def getLabels(labelsFile):
@@ -68,7 +71,7 @@ def postProcessMutations(mutationsFile, labelsFile, rna, outdir):
         outMutation.close()
 
 #Filters mutations with fewer than a given number of occurrences and within a given region of the genome
-def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, write_counts, outdir):
+def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, outdir):
     #Set max and min genome and alignment positions
     if not genome_pos:
         g_pos = [1, 100000000]
@@ -93,17 +96,10 @@ def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, write_counts,
 
             #Count mutations within required genome and alignment regions
             if (g >= g_pos[0]) and (g <= g_pos[1]) and (a >= a_pos[0]) and (a <= a_pos[1]):
-                if l.strip().split(",")[0] not in mutations:
-                    mutations[l.strip().split(",")[0]] = 0
-                mutations[l.strip().split(",")[0]] += 1
-    
-    #Write mutation counts if specified
-    if write_counts:
-        outMutationCounts = open(outdir + "mutation_counts.csv", "w")
-        outMutationCounts.write("Substitution,Mutation_type,Number_of_mutations\n")
-        for eM in mutations:
-            outMutationCounts.write(eM + "," + eM[0] + ">" + eM[-1] + "," + str(mutations[eM]) + "\n")
-        outMutationCounts.close()
+                mut = l.strip().split(",")[0]
+                if mut not in mutations:
+                    mutations[mut] = 0
+                mutations[mut] += 1
     
     #Empty spectrum
     if rna:
@@ -136,14 +132,87 @@ def filterMutations(mutationsFile, nm, genome_pos, align_pos, rna, write_counts,
         plotRNA(spectrumFormat, False, outSpectrum)
     outSpectrum.close()
 
+#Counts the number of each mutation in MutTui output and determines whether each is synonymous or nonsynonymous
+def countMutations(mutationsFile, alignment, tree, outdir):
+    #Import to branches as keys and mutations as values
+    bD = dict()
+    with open(mutationsFile.name) as f:
+        next(f)
+        for l in f:
+            nN = l.strip().split(",")[-1]
+            if nN not in bD:
+                bD[nN] = list()
+            bD[nN].append(l.strip().split(",")[0])
+    
+    #Import alignment and extract to dictionary with node names as keys and sequences as IDs
+    sDict = dict()
+    for r in SeqIO.parse(alignment, "fasta"):
+        sDict[r.id] = array.array("u", r.seq)
+    
+    #Import the tree
+    t = Phylo.read(tree, "newick")
+    #Label the tree as in MutTui
+    t.ladderize()
+    t = labelBranchesTreetime(t)
+
+    #Mutations as keys, counts as values
+    mDict = dict()
+
+    #Iterate through the tree, add the mutations on each branch to the parental sequence, identify whether mutations are synonymous or nonsynonymous
+    #and add to mutation dictionary
+    for b in t.find_clades():
+        #Check if the branch has mutations
+        if b.name in bD:
+            #Get sequence of parental node
+            s = sDict[getParentName(t, b)]
+            #Original sequence
+            oS = Seq("".join(s)).translate()
+
+            #Add mutations into sequence
+            for eM in bD[b.name]:
+                s[int(eM[1:-1]) - 1] = eM[-1]
+            
+            #Translate sequence
+            sT = Seq("".join(s)).translate()
+            
+            #Iterate through mutations again, identify if they are synonymous
+            for eM in bD[b.name]:
+                #Get amino acid position of the mutation
+                aaPosition = (int(int(eM[1:-1])/3) + (int(eM[1:-1]) % 3 > 0)) - 1
+                #Check if the amino acid position differs between the parental and mutated sequences
+                if oS[aaPosition] != sT[aaPosition]:
+                    mName = eM + "_nonsynonymous"
+                else:
+                    mName = eM + "_synonymous"
+                if mName not in mDict:
+                    mDict[mName] = 0
+                mDict[mName] += 1
+    
+    #Write the mutation counts
+    out = open(outdir + "mutation_counts.csv", "w")
+    out.write("Substitution,Mutation_type,Effect,Number_of_mutations\n")
+    for eM in mDict:
+        out.write(eM.split("_")[0] + "," + eM[0] + ">" + eM.split("_")[0][-1] + "," + eM.split("_")[1] + "," + str(mDict[eM]) + "\n")
+    out.close()
+
 if __name__ == "__main__":
-    description = "Splits mutations into separate mutational spectra based on branch labels"
+    description = "Post-processes output mutations from MutTui. Mutations can be filtered to keep those in particular regions of the genome or input alignment, or to keep mutations that occur a maximum number of times, using --filter. To count the number of occurrences of each mutation, use --count_mutations. If neither --filter or --count_mutations is specified, a labelling file is expected with -l to extract the spectrum of a subset of phylogenetic branches"
     parser = argparse.ArgumentParser(description = description)
 
     parser.add_argument("-m",
                         "--mutations",
                         dest = "mutations",
                         help = "all_included_mutations.csv file from MutTui",
+                        type = argparse.FileType("r"))
+    parser.add_argument("-f",
+                        "--alignment",
+                        dest = "align",
+                        help = "ancestral_sequences.fasta file from MutTui, only used if --count_mutations is specified",
+                        type = argparse.FileType("r"))
+    parser.add_argument("-t",
+                        "--tree",
+                        dest = "tree",
+                        help = "Unlabelled newick tree that was used to run MutTui, only used if --count_mutations is specified",
                         type = argparse.FileType("r"))
     parser.add_argument("-l",
                         "--labels",
@@ -163,8 +232,8 @@ if __name__ == "__main__":
                         "to specify the maximum number of occurrences to keep a mutation",
                         action = "store_true",
                         default = False)
-    parser.add_argument("--write_counts",
-                        dest = "write_counts",
+    parser.add_argument("--count_mutations",
+                        dest = "count_mutations",
                         help = "Specify to write the number of occurrences of each mutation. Requires --filter to also be specified",
                         action = "store_true",
                         default = False)
@@ -198,9 +267,19 @@ if __name__ == "__main__":
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
-    #Post-process the spectrum into groups
-    if not args.filter:
-        postProcessMutations(args.mutations, args.labels, args.rna, args.output_dir)
     #Filter the mutations
+    if args.filter:
+        print("Filtering mutations")
+        filterMutations(args.mutations, args.number_mutations, args.genome_positions, args.align_positions, args.rna, args.output_dir)
+    #Count the mutations and their effects, only available for RNA spectra currently
+    elif args.count_mutations:
+        if (not args.align) or (not args.tree):
+            raise RuntimeError("ancestral_sequences.fasta must be specified with -f and the original tree provided to MutTui must be specified with -t when --count_mutations is specified")
+        print("Counting mutations")
+        countMutations(args.mutations, args.align, args.tree, args.output_dir)
+    #Post-process the spectrum into groups
     else:
-        filterMutations(args.mutations, args.number_mutations, args.genome_positions, args.align_positions, args.rna, args.write_counts, args.output_dir)
+        print("Calculating spectrum of a subset of branches")
+        if not args.labels:
+            raise RuntimeError("A file containing branches to be extracted needs to be supplied when splitting the spectrum by branches")
+        postProcessMutations(args.mutations, args.labels, args.rna, args.output_dir)
