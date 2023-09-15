@@ -181,18 +181,18 @@ def countMutations(mutationsFile, alignment, tree, outdir):
                 aaPosition = (int(int(eM[1:-1])/3) + (int(eM[1:-1]) % 3 > 0)) - 1
                 #Check if the amino acid position differs between the parental and mutated sequences
                 if oS[aaPosition] != sT[aaPosition]:
-                    mName = eM + "_nonsynonymous"
+                    mName = eM + "_nonsynonymous_" + oS[aaPosition] + str(aaPosition) + sT[aaPosition]
                 else:
-                    mName = eM + "_synonymous"
+                    mName = eM + "_synonymous_" + oS[aaPosition] + str(aaPosition) + sT[aaPosition]
                 if mName not in mDict:
                     mDict[mName] = 0
                 mDict[mName] += 1
     
     #Write the mutation counts
     out = open(outdir + "mutation_counts.csv", "w")
-    out.write("Substitution,Mutation_type,Effect,Number_of_mutations\n")
+    out.write("Substitution,Substitution_position,Mutation_type,Effect,Amino_acid_position,Amino_acid_substitution,Number_of_mutations\n")
     for eM in mDict:
-        out.write(eM.split("_")[0] + "," + eM[0] + ">" + eM.split("_")[0][-1] + "," + eM.split("_")[1] + "," + str(mDict[eM]) + "\n")
+        out.write(eM.split("_")[0] + "," + eM.split("_")[0][1:-1] + "," + eM[0] + ">" + eM.split("_")[0][-1] + "," + eM.split("_")[1] + "," + eM.split("_")[2][1:-1] + "," + eM.split("_")[2] + "," + str(mDict[eM]) + "\n")
     out.close()
 
 if __name__ == "__main__":
