@@ -181,9 +181,9 @@ def countMutations(mutationsFile, alignment, tree, outdir):
                 aaPosition = (int(int(eM[1:-1])/3) + (int(eM[1:-1]) % 3 > 0)) - 1
                 #Check if the amino acid position differs between the parental and mutated sequences
                 if oS[aaPosition] != sT[aaPosition]:
-                    mName = eM + "_nonsynonymous_" + oS[aaPosition] + str(aaPosition) + sT[aaPosition]
+                    mName = eM + "_nonsynonymous_" + oS[aaPosition] + str(aaPosition + 1) + sT[aaPosition]
                 else:
-                    mName = eM + "_synonymous_" + oS[aaPosition] + str(aaPosition) + sT[aaPosition]
+                    mName = eM + "_synonymous_" + oS[aaPosition] + str(aaPosition + 1) + sT[aaPosition]
                 if mName not in mDict:
                     mDict[mName] = 0
                 mDict[mName] += 1
