@@ -330,7 +330,10 @@ def muttui(args):
 
                 #Check if only synonymous mutations should be included, if so filter the mutations
                 if args.synonymous:
-                    branchMutations = extractSynonymous(branchMutations, updatedReference, geneCoordinates, positionGene)
+                    bM = list()
+                    for eBM in branchMutations:
+                        bM.append(eBM)
+                    branchMutations = extractSynonymous(bM, updatedReference, geneCoordinates, positionGene)
                 
                 for mutation in branchMutations:
                     mutationContext = getContext(mutation, updatedReference)

@@ -344,6 +344,8 @@ def translateSequence(sequence, strand):
 #If the gene is on the positive strand, this is the nucleotide position divided by 3, rounded up
 #If the gene is on the negative strand, this is the nucleotide position from the end of the gene divided by 3, rounded up
 def extractPosition(geneCoordinates, positionInGene):
+    #Remove zero basing
+    positionInGene = positionInGene + 1
     if geneCoordinates[2] == "+":
         return(int(positionInGene/3) + (positionInGene % 3 > 0))
     else:
