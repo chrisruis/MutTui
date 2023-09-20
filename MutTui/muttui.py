@@ -323,7 +323,10 @@ def muttui(args):
             #and option --include_all_branches is not specified
             if branchCategory is not None:
                 #Extract double substitutions, remove mutations at the ends of the genome or not involving 2 nucleotides
-                branchMutations, doubleSubstitutions = filterMutations(branchMutations, clade, nucleotides, referenceLength, outMutationsNotUsed)
+                bM = []
+                for eBM in branchMutations:
+                    bM.append(eBM)
+                branchMutations, doubleSubstitutions = filterMutations(bM, clade, nucleotides, referenceLength, outMutationsNotUsed)
                 
                 #Update the reference sequence to get the current context
                 updatedReference = updateReference(tree, clade, branchMutationDict, referenceSequence)
