@@ -1347,6 +1347,30 @@ def rescaleSBS(spectrum, contexts, scalar, rna):
 
     return(rescaledSpectrum)
 
+#Reverses a SBS spectrum for reverse strand RNA viruses
+def reverseSpectrum(spectrum):
+    #Will be RNA dictionary as DNA cannot be reverse stranded
+    reverseDict = getRNADict()
+
+    #Iterate through the mutations in the spectrum, reverse them and add to the corresponding
+    #mutation in the reverse spectrum
+    for eachM in spectrum:
+        reverseDict[complement(eachM[-1]) + complement(eachM[1]) + complement(eachM[2]) + complement(eachM[0])] = spectrum[eachM]
+    
+    return(reverseDict)
+
+#Reverses a DBS spectrum for reverse strand RNA viruses
+def reverseDouble(spectrum):
+    #Will be RNA dictionary as DNA cannot be reverse stranded
+    reverseDict = getRNADoubleSubstitutionDict()
+
+    #Iterate through the mutations in the spectrum, reverse them and add to the corresponding
+    #mutation in the reverse spectrum
+    for eachM in spectrum:
+        reverseDict[complement(eachM[1]) + complement(eachM[0]) + complement(eachM[3]) + complement(eachM[2])] = spectrum[eachM]
+
+    return(reverseDict)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", help = "ancestral_sequences.fasta from treetime")

@@ -103,6 +103,12 @@ def muttui_parser(parser):
                         help = "Specify if using an RNA pathogen, MutTui will output an RNA mutational spectrum",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--reverse_strand",
+                        dest = "reverse_strand",
+                        help = "Specify if using a negative strand RNA pathogen where the input alignment is cRNA. " + 
+                        "This will reverse the spectrum calculated from the input alignment to reflect the spectrum in the genomic RNA",
+                        action = "store_true",
+                        default = False)
     parser.add_argument("--all_sites",
                         dest = "all_sites",
                         help = "Specify that the alignment contains all sites, in which case a reference genome does not need to be provided",
@@ -387,10 +393,22 @@ def muttui(args):
                     outMutationsNotUsed.write(eM[0] + str(eM[1]) + eM[3] + "," + eM[0] + str(eM[2]) + eM[3] + "," + clade.name + ",Label_changes_on_branch\n")
     
     #Calculate contexts in the reference to enable rescaling
-    refContexts = calculateContexts(referenceSequence, args.rna)
+    if not args.reverse_strand:
+        refContexts = calculateContexts(referenceSequence, args.rna)
+    else:
+        #Reverse the reference if using the reverse strand
+        reverseReference = ""
+        for eachN in reversed(referenceSequence):
+            reverseReference += complement(eachN)
+        refContexts = calculateContexts(referenceSequence, args.rna)
     
     #Write the spectra to separate files
     for eachLabel in spectraDict:
+        #Reverse the spectrum if needed
+        if args.reverse_strand:
+            spectraDict[eachLabel] = reverseSpectrum(spectraDict[eachLabel])
+            doubleSpectraDict[eachLabel] = reverseDouble(doubleSpectraDict[eachLabel])
+        
         outFile = open(args.output_dir + "mutational_spectrum_label_" + eachLabel + ".csv", "w")
         outFile.write("Substitution,Number_of_mutations\n")
         for eachMutation in spectraDict[eachLabel]:
