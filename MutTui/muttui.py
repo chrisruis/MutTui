@@ -176,6 +176,10 @@ def muttui(args):
     #Make sure trailing forward slash is present in output directory
     args.output_dir = os.path.join(args.output_dir, "")
 
+    #Reverse stand can only be used for RNA virus datasets
+    if args.reverse_strand and not args.rna:
+        raise RuntimeError("--reverse_strand can only be specified with --rna")
+
     #If --branch_specific is used, set --include_all_branches to true
     if args.branch_specific:
         args.include_all_branches = True
