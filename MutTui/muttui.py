@@ -285,7 +285,7 @@ def muttui(args):
     if not args.start_from_treetime:
         branchMutationDict = getBranchMutationNexusDict(args.output_dir + "annotated_tree.nexus", positionTranslation)
     else:
-        branchMutationDict = getBranchMutationNexusDict(args.output_dir + "annotated_tree.nexus", positionTranslation)
+        branchMutationDict = getBranchMutationNexusDict(args.treetime_out + "annotated_tree.nexus", positionTranslation)
 
     #Get the reference sequence, if -r specified this will be the provided genome, otherwise all sites in the alignment are assumed
     #and the root sequence from the ancestral reconstruction is used
