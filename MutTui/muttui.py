@@ -404,7 +404,7 @@ def muttui(args):
         reverseReference = ""
         for eachN in reversed(referenceSequence):
             reverseReference += complement(eachN)
-        refContexts = calculateContexts(referenceSequence, args.rna)
+        refContexts = calculateContexts(reverseReference, args.rna)
     
     #Write the spectra to separate files
     for eachLabel in spectraDict:
