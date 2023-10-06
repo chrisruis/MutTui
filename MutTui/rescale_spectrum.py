@@ -209,7 +209,7 @@ def rescaleSBS(spectrum, reference, scalar, rna):
     for m in spectrum:
         rescaledSpectrum[m] = round((spectrum[m]/contexts[m[0] + m[1] + m[3]]) * scalar)
 
-    return(rescaledSpectrum)
+    return(rescaledSpectrum, contexts)
 
 #Rescales a mutation type spectrum
 def rescaleMT(spectrum, reference, scalar, rna):
@@ -239,7 +239,7 @@ def rescaleMT(spectrum, reference, scalar, rna):
     for m in spectrum:
         rescaledSpectrum[m] = round((spectrum[m]/conversion[m[0]]) * scalar)
     
-    return(rescaledSpectrum)
+    return(rescaledSpectrum, conversion)
 
 #Rescales a double substitution spectrum
 def rescaleDouble(spectrum, reference, scalar, rna):
@@ -248,7 +248,7 @@ def rescaleDouble(spectrum, reference, scalar, rna):
 
     #Count dinucleotide pairs in reference
     for sequence in SeqIO.parse(reference, "fasta"):
-        dn = calculateDinucleotides(sequence.seq, rna)
+        dn = calculateDinucleotides(sequence.seq.upper(), rna)
 
     #Empty DBS dict
     rescaledSpectrum = getDoubleSubstitutionDict()
@@ -257,7 +257,7 @@ def rescaleDouble(spectrum, reference, scalar, rna):
     for m in spectrum:
         rescaledSpectrum[m] = round((spectrum[m]/dn[m[0] + m[1]]) * scalar)
     
-    return(rescaledSpectrum)
+    return(rescaledSpectrum, dn)
 
 if __name__ == "__main__":
     description = "Rescales a mutational spectrum based on triplet availability in a given reference"
@@ -297,6 +297,17 @@ if __name__ == "__main__":
                         help = "Specify if using an RNA pathogen",
                         action = "store_true",
                         default = False)
+    parser.add_argument("--write_ref_contexts",
+                        dest = "write_rc",
+                        help = "Specify to write the reference context counts to a csv file. If specified, the counts will be written to " + 
+                        "reference_context_counts.csv by default. The name of the file can be updated with -rc",
+                        action = "store_true",
+                        default = False)
+    parser.add_argument("-rc",
+                        dest = "rc",
+                        help = "Name of file to which reference context counts will be written if --write_ref_contexts is specified, default " + 
+                        "reference_context_counts.csv",
+                        default = "reference_context_counts.csv")
     parser.add_argument("-o",
                         "--outfile",
                         dest = "outFile",
@@ -316,18 +327,26 @@ if __name__ == "__main__":
 
     #Rescale DNA or RNA mutation type spectrum
     if args.mt:
-        rescaledSpectrum = rescaleMT(spectrum, args.reference, scalar, args.rna)
+        rescaledSpectrum, contexts = rescaleMT(spectrum, args.reference, scalar, args.rna)
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation + "," + str(rescaledSpectrum[eachMutation]) + "\n")
     #Rescale DNA double substitution spectrum
     elif args.double:
-        rescaledSpectrum = rescaleDouble(spectrum, args.reference, scalar, args.rna)
+        rescaledSpectrum, contexts = rescaleDouble(spectrum, args.reference, scalar, args.rna)
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation[:2] + ">" + eachMutation[2:] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
     #Rescale DNA SBS spectrum
     else:
-        rescaledSpectrum = rescaleSBS(spectrum, args.reference, scalar, args.rna)
+        rescaledSpectrum, contexts = rescaleSBS(spectrum, args.reference, scalar, args.rna)
         for eachMutation in rescaledSpectrum:
             outFile.write(eachMutation[0] + "[" + eachMutation[1] + ">" + eachMutation[2] + "]" + eachMutation[3] + "," + str(rescaledSpectrum[eachMutation]) + "\n")
 
     outFile.close()
+
+    #Write reference context counts if specified
+    if args.write_rc:
+        outC = open(args.rc, "w")
+        outC.write("Context,Number_of_occurrences\n")
+        for eC in contexts:
+            outC.write(eC + "," + str(contexts[eC]) + "\n")
+        outC.close()
