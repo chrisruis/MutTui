@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from .treetime import run_treetime, change_gaps_to_Ns
+from .treetime import run_treetime, change_gaps_to_Ns, run_treetime_mugration
 from .isvalid import *
 from Bio import AlignIO, Phylo
 from .add_tree_node_labels import *
