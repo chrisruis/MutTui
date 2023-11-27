@@ -11,4 +11,7 @@ To calculate mutational spectra from variant data run:
 MutTui korimuto -v VCF/variant_file -r reference.fasta -o output_prefix
 ```
 
-If a variant file is used, option --variant should be specified
+If a variant file is used, option --variant should be specified, for example:
+```
+MutTui korimuto -v variants.csv -r reference.fasta -o output_prefix --variant
+```
