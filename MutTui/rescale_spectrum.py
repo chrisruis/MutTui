@@ -177,11 +177,15 @@ def calculateContexts(sequence, rna):
 def calculateDinucleotides(sequence, rna):
     dnDict = getDinucleotideDict()
 
+    #The possible nucleotides
+    nucleotides = ["A", "C", "G", "T"]
+
     for i in range(len(sequence) - 1):
-        if (sequence[i] + sequence[i + 1]) in dnDict:
-            dnDict[sequence[i] + sequence[i + 1]] += 1
-        else:
-            dnDict[complement(sequence[i + 1]) + complement(sequence[i])] += 1
+        if (sequence[i] in nucleotides) and (sequence[i + 1] in nucleotides):
+            if (sequence[i] + sequence[i + 1]) in dnDict:
+                dnDict[sequence[i] + sequence[i + 1]] += 1
+            else:
+                dnDict[complement(sequence[i + 1]) + complement(sequence[i])] += 1
     
     #Add the reverse complement contexts from the reverse strand if the sequence is DNA
     if not rna:
